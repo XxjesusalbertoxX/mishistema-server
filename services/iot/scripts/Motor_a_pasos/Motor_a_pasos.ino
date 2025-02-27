@@ -43,10 +43,10 @@ void setup() {
 }
 
 void loop() {
-    if (!client.connected()) {
-        reconnectMQTT();
-    }
-    client.loop();
+    //if (!client.connected()) {
+    //    reconnectMQTT();
+    //}
+    //client.loop();
     moveMotor();  // Mueve el motor según la configuración actual
 }
 
