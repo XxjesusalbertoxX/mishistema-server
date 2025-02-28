@@ -1,29 +1,29 @@
 services:
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
-  rabbit_mqtt:
-    image: rabbitmq:management
-    container_name: rabbit_mqtt
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 20s    # Intervalo entre cada intento de comprobación
-      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
-      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
-      start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
-    ports:
-      - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
-      # Puedes remapear los puertos AMQP/management si es necesario:
-      - "5673:5672"
-      - "15673:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin123
-    volumes:
-      - rabbit_mqtt_data:/var/lib/rabbitmq
-      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
-    networks:
-      - backend
+  # rabbit_mqtt:
+  #   image: rabbitmq:management
+  #   container_name: rabbit_mqtt
+  #   restart: on-failure
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+  #     interval: 20s    # Intervalo entre cada intento de comprobación
+  #     timeout: 10s     # Tiempo máximo para ejecutar la comprobación
+  #     retries: 10      # Número de intentos antes de marcar el contenedor como fallido
+  #     start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
+  #   ports:
+  #     - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
+  #     # Puedes remapear los puertos AMQP/management si es necesario:
+  #     - "5673:5672"
+  #     - "15673:15672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: admin
+  #     RABBITMQ_DEFAULT_PASS: admin123
+  #   volumes:
+  #     - rabbit_mqtt_data:/var/lib/rabbitmq
+  #     - ./enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+  #   networks:
+  #     - backend
 
   # Broker AMQP para comunicación interna entre microservicios
   rabbit_amqp:
@@ -110,7 +110,8 @@ services:
       - /app/node_modules
     depends_on:
       - db_iot
-      - rabbit_mqtt
+      - mqtt_broker
+      # - rabbit_mqtt
       - rabbit_amqp
       - websocket
     networks:
@@ -125,6 +126,24 @@ services:
       - ../infraestructure/websocket:/app
     networks:
       - backend
+
+  mqtt_broker:
+    image: eclipse-mosquitto:2
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 1883"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "1883:1883"    # Protocolo MQTT
+      - "9001:9001"    # Websocket para MQTT (si se usa)
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_config:/mosquitto/config
+    networks:
+      - backend
+
   db_auth:
     image: postgres:13
     environment:
@@ -156,27 +175,11 @@ networks:
     driver: bridge
 
 volumes:
+  mosquitto_data:
+  mosquitto_config:
   rabbit_amqp_data:
     name: rabbit_amqp_data
-  rabbit_mqtt_data:
-    name: rabbit_mqtt_data
+  # rabbit_mqtt_data:
+  #   name: rabbit_mqtt_data
   db_auth_data:
   db_iot_data:
-
-
-  # mqtt_broker:
-  #   image: eclipse-mosquitto:2
-  #   healthcheck:
-  #     test: ["CMD", "sh", "-c", "nc -z localhost 1883"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
-  #   ports:
-  #     - "1883:1883"    # Protocolo MQTT
-  #     - "9001:9001"    # Websocket para MQTT (si se usa)
-  #   volumes:
-  #     - mosquitto_data:/mosquitto/data
-  #     - mosquitto_config:/mosquitto/config
-  #   networks:
-  #     - backend
