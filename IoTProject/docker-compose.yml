@@ -107,7 +107,6 @@ services:
       - "3004:3000"
     volumes:
       - ../services/iot:/app
-      - /app/node_modules
     depends_on:
       - db_iot
       # - mqtt_broker
