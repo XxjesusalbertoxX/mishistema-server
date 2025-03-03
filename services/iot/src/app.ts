@@ -1,57 +1,31 @@
-import express, { Request, Response, NextFunction, RequestHandler } from 'express';
-import amqp from 'amqplib';
+import mqtt, { IClientSubscribeOptions } from 'mqtt';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const app = express();
-app.use(express.json());
+const MQTT_BROKER_URL = process.env.RABBITMQ_MQTT_URL || 'mqtt://localhost:1883';
+const TOPIC = 'sensorData';
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://rabbit_amqp';
-const QUEUE_NAME = 'motor_configurations';
+const client = mqtt.connect(MQTT_BROKER_URL, {
+  username: process.env.RABBITMQ_USER || 'admin',
+  password: process.env.RABBITMQ_PASSWORD || 'admin123'
+});
 
-// Declaramos el manejador de la ruta con tipo RequestHandler y retorno Promise<void>
-const configureMotorHandler: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  const { speed, steps } = req.body;
+client.on('connect', () => {
+  console.log('✅ Conectado a RabbitMQ MQTT');
+  client.subscribe(TOPIC, (err: Error | null) => {
+    if (err) {
+      console.error('❌ Error al suscribirse al topic:', err);
+    } else {
+      console.log(`📡 Suscrito al topic: ${TOPIC}`);
+    }
+  });
+});
 
-  if (typeof speed !== 'number' || typeof steps !== 'number') {
-    res.status(400).json({ error: 'Invalid data format' });
-    return;
-  }
+client.on('message', (topic, message) => {
+  console.log(`📥 Mensaje recibido en ${topic}:`, message.toString());
+});
 
-  try {
-    // Conectarse a RabbitMQ
-    const connection = await amqp.connect(RABBITMQ_URL);
-    const channel = await connection.createChannel();
-
-    // Asegurarse de que la cola exista
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    // Enviar la configuración al Arduino a través de RabbitMQ
-    const message = JSON.stringify({ speed, steps });
-    channel.sendToQueue(QUEUE_NAME, Buffer.from(message), { persistent: true });
-
-    console.log('Sent motor configuration to RabbitMQ:', message);
-
-    // Ejemplo: responder inmediatamente (puedes implementar la lógica para esperar la respuesta)
-    res.json({ message: 'Configuration sent' });
-    
-    // Cerrar conexión o canal si es necesario
-    // await channel.close();
-    // await connection.close();
-  } catch (error) {
-    console.error('Error:', error);
-    next(error);
-  }
-};
-
-app.post('/motor/configure', configureMotorHandler);
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`IoT Service running on port ${PORT}`);
+client.on('error', (err) => {
+  console.error('❌ Error de conexión MQTT:', err);
 });
