@@ -9,7 +9,8 @@ USER root
 COPY package*.json ./
 
 # Instalar dependencias con permisos de root
-RUN npm install --unsafe-perm
+RUN npm install --omit=dev
+
 
 # Copiar el resto de los archivos
 COPY . .
