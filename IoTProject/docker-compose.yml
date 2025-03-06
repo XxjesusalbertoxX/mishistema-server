@@ -70,9 +70,7 @@ services:
     volumes:
       - ../services/login:/app
       - /app/node_modules
-    depends_on:
-      - db_auth
-      - rabbit_amqp
+
     networks:
       - backend
 
@@ -83,9 +81,6 @@ services:
     volumes:
       - ../services/auth:/app
       - /app/node_modules
-    depends_on:
-      - db_auth
-      - rabbit_amqp
     networks:
       - backend
 
@@ -96,8 +91,6 @@ services:
     volumes:
       - ../services/notification:/app
       - /app/node_modules
-    depends_on:
-      - rabbit_amqp
     networks:
       - backend
 
@@ -107,11 +100,6 @@ services:
       - "3004:3000"
     volumes:
       - ../services/iot:/app
-    depends_on:
-      - db_iot
-      # - mqtt_broker
-      - rabbit_mqtt
-      - rabbit_amqp
       - websocket
     networks:
       - backend
@@ -172,13 +160,3 @@ services:
 networks:
   backend:
     driver: bridge
-
-volumes:
-  # mosquitto_data:
-  # mosquitto_config:
-  rabbit_amqp_data:
-    name: rabbit_amqp_data
-  rabbit_mqtt_data:
-    name: rabbit_mqtt_data
-  db_auth_data:
-  db_iot_data:
