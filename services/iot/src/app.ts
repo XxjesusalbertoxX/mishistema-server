@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MQTT_BROKER_URL = process.env.RABBITMQ_MQTT_URL || 'mqtt://192.168.119.161:1883';
+const MQTT_BROKER_URL = process.env.RABBITMQ_MQTT_URL || 'mqtt://3.145.125.14:1883';
 const TOPIC = 'sensorData';
 
 const client = mqtt.connect(MQTT_BROKER_URL, {

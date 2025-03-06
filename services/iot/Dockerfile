@@ -9,7 +9,7 @@ USER root
 COPY package*.json ./
 
 # Instalar dependencias con permisos de root
-RUN npm install --omit=dev
+RUN npm install
 
 
 # Copiar el resto de los archivos

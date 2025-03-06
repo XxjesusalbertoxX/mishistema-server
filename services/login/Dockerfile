@@ -2,11 +2,9 @@ FROM node:16-alpine
 
 WORKDIR /app
 
+USER root
+
 COPY package*.json ./
-
-RUN npm cache clean --force
-
-RUN npm config set registry https://registry.npmjs.org/
 
 RUN npm install
 
