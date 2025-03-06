@@ -48,83 +48,83 @@ services:
     networks:
       - backend
 
-  apigateway:
-    build: ../infraestructure/api-gateway
-    ports:
-      - "8080:8080"
-    volumes:
-      - ../infraestructure/api-gateway:/app
-      - /app/node_modules
-    depends_on:
-      - login
-      - auth
-      - notifications
-      - iot
-    networks:
-      - backend
+  # apigateway:
+  #   build: ../infraestructure/api-gateway
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - ../infraestructure/api-gateway:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - login
+  #     - auth
+  #     - notifications
+  #     - iot
+  #   networks:
+  #     - backend
 
-  login:
-    build: ../services/login
-    ports:
-      - "3001:3000"
-    volumes:
-      - ../services/login:/app
-      - /app/node_modules
-    depends_on:
-      - db_auth
-      - rabbit_amqp
-    networks:
-      - backend
+  # login:
+  #   build: ../services/login
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - ../services/login:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - db_auth
+  #     - rabbit_amqp
+  #   networks:
+  #     - backend
 
-  auth:
-    build: ../services/auth
-    ports:
-      - "3002:3000"
-    volumes:
-      - ../services/auth:/app
-      - /app/node_modules
-    depends_on:
-      - db_auth
-      - rabbit_amqp
-    networks:
-      - backend
+  # auth:
+  #   build: ../services/auth
+  #   ports:
+  #     - "3002:3000"
+  #   volumes:
+  #     - ../services/auth:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - db_auth
+  #     - rabbit_amqp
+  #   networks:
+  #     - backend
 
-  notifications:
-    build: ../services/notification
-    ports:
-      - "3003:3000"
-    volumes:
-      - ../services/notification:/app
-      - /app/node_modules
-    depends_on:
-      - rabbit_amqp
-    networks:
-      - backend
+  # notifications:
+  #   build: ../services/notification
+  #   ports:
+  #     - "3003:3000"
+  #   volumes:
+  #     - ../services/notification:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - rabbit_amqp
+  #   networks:
+  #     - backend
 
-  iot:
-    build: ../services/iot
-    ports:
-      - "3004:3000"
-    volumes:
-      - ../services/iot:/app
-    depends_on:
-      - db_iot
-      # - mqtt_broker
-      - rabbit_mqtt
-      - rabbit_amqp
-      - websocket
-    networks:
-      - backend
+  # iot:
+  #   build: ../services/iot
+  #   ports:
+  #     - "3004:3000"
+  #   volumes:
+  #     - ../services/iot:/app
+  #   depends_on:
+  #     - db_iot
+  #     # - mqtt_broker
+  #     - rabbit_mqtt
+  #     - rabbit_amqp
+  #     - websocket
+  #   networks:
+  #     - backend
 
-  websocket:
-    build: ../infraestructure/websocket
-    ports:
-      - "3005:3000"
-    restart: on-failure
-    volumes:
-      - ../infraestructure/websocket:/app
-    networks:
-      - backend
+  # websocket:
+  #   build: ../infraestructure/websocket
+  #   ports:
+  #     - "3005:3000"
+  #   restart: on-failure
+  #   volumes:
+  #     - ../infraestructure/websocket:/app
+  #   networks:
+  #     - backend
 
   # mqtt_broker:
   #   image: eclipse-mosquitto:2
