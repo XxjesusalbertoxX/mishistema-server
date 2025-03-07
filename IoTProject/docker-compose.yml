@@ -1,34 +1,34 @@
 services:
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
-  # rabbit_mqtt:
-  #   image: rabbitmq:management
-  #   container_name: rabbit_mqtt
-  #   restart: on-failure
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-  #     interval: 20s    # Intervalo entre cada intento de comprobación
-  #     timeout: 10s     # Tiempo máximo para ejecutar la comprobación
-  #     retries: 10      # Número de intentos antes de marcar el contenedor como fallido
-  #     start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
-  #   ports:
-  #     - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
-  #     # Puedes remapear los puertos AMQP/management si es necesario:
-  #     - "5673:5672"
-  #     - "15673:15672"
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: admin
-  #     RABBITMQ_DEFAULT_PASS: admin123
-  #   volumes:
-  #     - rabbit_mqtt_data:/var/lib/rabbitmq
-  #     - ./enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
-  #   networks:
-  #     - backend
+  rabbit_mqtt:
+    image: rabbitmq:management
+    container_name: RABBIT_MQTT
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 20s    # Intervalo entre cada intento de comprobación
+      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
+      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
+      start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
+    ports:
+      - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
+      # Puedes remapear los puertos AMQP/management si es necesario:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit345
+      RABBITMQ_DEFAULT_PASS: rabbitseguro345
+    volumes:
+      - rabbit_mqtt_data:/var/lib/rabbitmq
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    networks:
+      - backend
 
-  # # Broker AMQP para comunicación interna entre microservicios
+  # Broker AMQP para comunicación interna entre microservicios
   # rabbit_amqp:
   #   image: rabbitmq:3-management
-  #   container_name: rabbit_amqp
+  #   container_name: RABBIT_AMQP
   #   restart: on-failure
   #   healthcheck:
   #     test: ["CMD", "rabbitmq-diagnostics", "check_running"]
@@ -50,72 +50,88 @@ services:
 
   apigateway:
     build: ../infraestructure/api-gateway
+    container_name: API_GATEWAY
     ports:
       - "8080:8080"
     volumes:
       - ../infraestructure/api-gateway:/app
-      - /app/node_modules
     depends_on:
       - login
       - auth
-      - notifications
-      - iot
+      # - notifications
+      # - iot
     networks:
       - backend
 
   login:
     build: ../services/login
+    container_name: LOGIN_SERVICE
     ports:
       - "3001:3000"
     volumes:
       - ../services/login:/app
-      - /app/node_modules
-
+    # depends_on:
+      - db_auth
+    #   - rabbit_amqp
     networks:
       - backend
 
   auth:
     build: ../services/auth
+    container_name: AUTH_SERVICE
     ports:
       - "3002:3000"
     volumes:
       - ../services/auth:/app
-      - /app/node_modules
+    depends_on:
+      - db_auth
+      # - rabbit_amqp
     networks:
       - backend
 
-  notifications:
-    build: ../services/notification
-    ports:
-      - "3003:3000"
-    volumes:
-      - ../services/notification:/app
-      - /app/node_modules
-    networks:
-      - backend
+  # notifications:
+  #   build: ../services/notification
+  #   container_name: NOTIFICATION_SERVICE
+  #   ports:
+  #     - "3003:3000"
+  #   volumes:
+  #     - ../services/notification:/app
+  #   depends_on:
+  #     - rabbit_amqp
+  #   networks:
+  #     - backend
 
-  iot:
-    build: ../services/iot
-    ports:
-      - "3004:3000"
-    volumes:
-      - ../services/iot:/app
-      - websocket
-    networks:
-      - backend
+  # iot:
+  #   build: ../services/iot
+  #   container_name: IOT_SERVICE
+  #   ports:
+  #     - "3004:3000"
+  #   volumes:
+  #     - ../services/iot:/app
+  #   depends_on:
+  #     - db_iot
+  #     # - mqtt_broker
+  #     - rabbit_mqtt
+  #     - rabbit_amqp
+  #     - websocket
+  #   networks:
+  #     - backend
 
-  websocket:
-    build: ../infraestructure/websocket
-    ports:
-      - "3005:3000"
-    restart: on-failure
-    volumes:
-      - ../infraestructure/websocket:/app
-    networks:
-      - backend
+  # websocket:
+  #   build: ../infraestructure/websocket
+  #   container_name: WEBSOCKET_SERVICE
+  #   ports:
+  #     - "3005:3000"
+  #   restart: on-failure
+  #   volumes:
+  #     - ../infraestructure/websocket:/app
+  #   networks:
+  #     - backend
 
-  # mqtt_broker:
+  # mqtt_broker_mosquitto:
   #   image: eclipse-mosquitto:2
+  #   container_name: mosquitto_broker
+  #   restart: on-failure
   #   healthcheck:
   #     test: ["CMD", "sh", "-c", "nc -z localhost 1883"]
   #     interval: 10s
@@ -131,21 +147,23 @@ services:
   #   networks:
   #     - backend
 
-  # db_auth:
-  #   image: postgres:13
-  #   environment:
-  #     - POSTGRES_USER=auth_user
-  #     - POSTGRES_PASSWORD=secret
-  #     - POSTGRES_DB=auth_db
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - db_auth_data:/var/lib/postgresql/data
-  #   networks:
-  #     - backend
+  db_auth:
+    image: postgres:13
+    container_name: AUTH_DATABASE
+    environment:
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_auth_data:/var/lib/postgresql/data
+    networks:
+      - backend
 
   # db_iot:
   #   image: postgres:13
+  #   container_name: IOT_DATABASE
   #   environment:
   #     - POSTGRES_USER=iot_user
   #     - POSTGRES_PASSWORD=secret
@@ -160,3 +178,13 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  # mosquitto_data:
+  # mosquitto_config:
+  # rabbit_amqp_data:
+  #   name: rabbit_amqp_data
+  rabbit_mqtt_data:
+    name: rabbit_mqtt_data
+  db_auth_data:
+  # db_iot_data:
