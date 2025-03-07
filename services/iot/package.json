@@ -12,16 +12,13 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/amqplib": "^0.10.6",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.13.5",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.3"
-  },
-  "dependencies": {
+    "typescript": "^5.7.3",
     "amqplib": "^0.10.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

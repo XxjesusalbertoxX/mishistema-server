@@ -1,8 +1,6 @@
 {
   "dependencies": {
-    "amqplib": "^0.10.5"
-  },
-  "devDependencies": {
+    "amqplib": "^0.10.5",
     "@types/amqplib": "^0.10.7"
   }
 }
