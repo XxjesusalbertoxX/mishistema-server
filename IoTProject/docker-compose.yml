@@ -70,7 +70,7 @@ services:
       - "3001:3000"
     volumes:
       - ../services/login:/app
-    # depends_on:
+    depends_on:
       - db_auth
     #   - rabbit_amqp
     networks:
@@ -187,4 +187,6 @@ volumes:
   rabbit_mqtt_data:
     name: rabbit_mqtt_data
   db_auth_data:
+    name: db_auth_data
   # db_iot_data:
+  #   name: db_iot_data
