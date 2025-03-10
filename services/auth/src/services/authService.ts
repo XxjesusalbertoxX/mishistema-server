@@ -13,6 +13,7 @@ const users = [
   },
 ];
 
+
 const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
 
 passport.use(
