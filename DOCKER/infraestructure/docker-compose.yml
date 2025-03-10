@@ -1,29 +1,47 @@
 services:
 
-  # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
-  rabbit_mqtt:
-    image: rabbitmq:management
-    container_name: MQTT
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 20s    # Intervalo entre cada intento de comprobación
-      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
-      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
-      start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
+  services:
+  emqx:
+    image: emqx/emqx:latest
+    container_name: emqx
+    restart: always
     ports:
-      - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
-      # Puedes remapear los puertos AMQP/management si es necesario:
-      - "5673:5672"
-      - "15673:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: rabbit345
-      RABBITMQ_DEFAULT_PASS: rabbitseguro345
+      - "1883:1883"    # Conexiones MQTT estándar
+      - "8083:8083"    # Conexiones MQTT sobre WebSocket
+      - "18083:18083"  # Dashboard de administración
+      - "8081:8081"    # API REST de EMQX (para hacer peticiones HTTP)
     volumes:
-      - rabbit_mqtt_data:/var/lib/rabbitmq
-      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
-    networks:
-      - infraestructure
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    environment:
+      - EMQX_NAME=emqx
+      - EMQX_HOST=127.0.0.1
+      - EMQX_NODE__COOKIE=secretcookie
+
+  # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
+  # rabbit_mqtt:
+  #   image: rabbitmq:management
+  #   container_name: MQTT
+  #   restart: on-failure
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+  #     interval: 20s    # Intervalo entre cada intento de comprobación
+  #     timeout: 10s     # Tiempo máximo para ejecutar la comprobación
+  #     retries: 10      # Número de intentos antes de marcar el contenedor como fallido
+  #     start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
+  #   ports:
+  #     - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
+  #     # Puedes remapear los puertos AMQP/management si es necesario:
+  #     - "5673:5672"
+  #     - "15673:15672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: rabbit345
+  #     RABBITMQ_DEFAULT_PASS: rabbitseguro345
+  #   volumes:
+  #     - rabbit_mqtt_data:/var/lib/rabbitmq
+  #     - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+  #   networks:
+  #     - infraestructure
 
   # Broker AMQP para comunicación interna entre microservicios
   rabbit_amqp:
@@ -124,6 +142,8 @@ networks:
 volumes:
   # mosquitto_data:
   # mosquitto_config:
+  emqx:
+    name: emqx_data
   rabbit_amqp_data:
     name: rabbit_amqp_data
   rabbit_mqtt_data:
