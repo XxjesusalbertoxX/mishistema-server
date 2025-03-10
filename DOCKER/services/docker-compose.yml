@@ -18,6 +18,9 @@ services:
       - "3002:3000"
     volumes:
       - ../../services/auth:/app
+    depends_on:
+      - db_auth
+      # - rabbit_amqp
     networks:
       - service
 
@@ -28,6 +31,8 @@ services:
       - "3003:3000"
     volumes:
       - ../../services/notification:/app
+    depends_on:
+      - rabbit_amqp
     networks:
       - service
 
@@ -38,6 +43,12 @@ services:
       - "3004:3000"
     volumes:
       - ../../services/iot:/app
+    depends_on:
+      - db_iot
+      # - mqtt_broker
+      - rabbit_mqtt
+      - rabbit_amqp
+      - websocket
     networks:
       - service
 
