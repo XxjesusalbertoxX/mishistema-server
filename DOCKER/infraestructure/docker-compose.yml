@@ -1,0 +1,139 @@
+services:
+
+  # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
+  rabbit_mqtt:
+    image: rabbitmq:management
+    container_name: MQTT
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 20s    # Intervalo entre cada intento de comprobación
+      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
+      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
+      start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
+    ports:
+      - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
+      # Puedes remapear los puertos AMQP/management si es necesario:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit345
+      RABBITMQ_DEFAULT_PASS: rabbitseguro345
+    volumes:
+      - rabbit_mqtt_data:/var/lib/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    networks:
+      - infraestructure
+
+  # Broker AMQP para comunicación interna entre microservicios
+  rabbit_amqp:
+    image: rabbitmq:3-management
+    container_name: AMQP
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 15s    # Intervalo entre cada intento de comprobación
+      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
+      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
+      start_period: 30s # Tiempo de espera antes de iniciar las comprobaciones de salud
+    ports:
+      - "5672:5672"    # Puerto AMQP
+      - "15672:15672"  # Interfaz de administración
+    environment:
+      RABBITMQ_ERLANG_COOKIE: 'mysecretcookie'
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbit_amqp_data:/var/lib/rabbitmq
+    networks:
+      - infraestructure
+  
+  apigateway:
+    build: ../../infraestructure/api-gateway
+    container_name: API_GATEWAY
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../infraestructure/api-gateway:/app
+    depends_on:
+      - login
+      - auth
+      - notifications
+      - iot
+    networks:
+      - infraestructure
+
+  websocket:
+    build: ../../infraestructure/websocket
+    container_name: WEBSOCKET_SERVICE
+    ports:
+      - "3005:3000"
+    restart: on-failure
+    volumes:
+      - ../../infraestructure/websocket:/app
+    networks:
+      - infraestructure
+
+
+  # mqtt_broker_mosquitto:
+  #   image: eclipse-mosquitto:2
+  #   container_name: mosquitto_broker
+  #   restart: on-failure
+  #   healthcheck:
+  #     test: ["CMD", "sh", "-c", "nc -z localhost 1883"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 10s
+  #   ports:
+  #     - "1883:1883"    # Protocolo MQTT
+  #     - "9001:9001"    # Websocket para MQTT (si se usa)
+  #   volumes:
+  #     - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+  #     - ./mosquitto-data:/mosquitto/data
+  #   networks:
+  #     - infraestructure
+
+  db_auth:
+    image: postgres:13
+    container_name: AUTH
+    environment:
+      - POSTGRES_USER=auth_user
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_auth_data:/var/lib/postgresql/data
+    networks:
+      - infraestructure
+
+  db_iot:
+    image: postgres:13
+    container_name: IOT
+    environment:
+      - POSTGRES_USER=iot_user
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=iot_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_iot_data:/var/lib/postgresql/data
+    networks:
+      - infraestructure
+
+networks:
+  infraestructure:
+    driver: bridge
+
+volumes:
+  # mosquitto_data:
+  # mosquitto_config:
+  rabbit_amqp_data:
+    name: rabbit_amqp_data
+  rabbit_mqtt_data:
+    name: rabbit_mqtt_data
+  db_auth_data:
+    name: db_auth_data
+  db_iot_data:
+    name: db_iot_data

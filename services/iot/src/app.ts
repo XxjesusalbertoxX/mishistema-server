@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const MQTT_BROKER_URL = process.env.RABBITMQ_MQTT_URL || 'mqtt://3.145.125.14:1883';
-const TOPIC = 'sensorData';
+const TOPIC = 'pene';
 
 const client = mqtt.connect(MQTT_BROKER_URL, {
   username: process.env.RABBITMQ_USER || 'admin',
