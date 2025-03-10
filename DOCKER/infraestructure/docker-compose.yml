@@ -1,10 +1,9 @@
 services:
 
-  services:
   emqx:
     image: emqx/emqx:latest
     container_name: emqx
-    restart: always
+    restart: on-failure
     ports:
       - "1883:1883"    # Conexiones MQTT estándar
       - "8083:8083"    # Conexiones MQTT sobre WebSocket
