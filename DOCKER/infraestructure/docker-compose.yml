@@ -5,17 +5,18 @@ services:
     container_name: emqx
     restart: on-failure
     ports:
-      - "1883:1883"    # Conexiones MQTT estándar
-      - "8083:8083"    # Conexiones MQTT sobre WebSocket
+      - "1883:1883"    # MQTT estándar
+      - "8083:8083"    # MQTT sobre WebSocket
       - "18083:18083"  # Dashboard de administración
-      - "8081:8081"    # API REST de EMQX (para hacer peticiones HTTP)
+      - "8081:8081"    # API REST de EMQX
     volumes:
       - emqx_data:/opt/emqx/data
       - emqx_log:/opt/emqx/log
     environment:
       - EMQX_NAME=emqx
-      - EMQX_HOST=127.0.0.1
       - EMQX_NODE__COOKIE=secretcookie
+      - EMQX_DASHBOARD__DEFAULT_USER__LOGIN=admin
+      - EMQX_DASHBOARD__DEFAULT_USER__PASSWORD=admin123
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
   # rabbit_mqtt:
