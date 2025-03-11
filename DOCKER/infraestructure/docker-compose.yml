@@ -15,8 +15,6 @@ services:
     environment:
       - EMQX_NAME=emqx
       - EMQX_NODE__COOKIE=secretcookie
-      - EMQX_DASHBOARD__DEFAULT_USER__LOGIN=admin
-      - EMQX_DASHBOARD__DEFAULT_USER__PASSWORD=admin123
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
   # rabbit_mqtt:
