@@ -4,7 +4,7 @@
 // Credenciales WiFi y datos del Broker MQTT
 const char* ssid = "arduino";
 const char* password = "00000000";
-const char* mqtt_server = "192.168.1.100"; // Reemplaza con la IP o dominio de tu broker
+const char* mqtt_server = "3.145.207.251"; // Reemplaza con la IP o dominio de tu broker
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);

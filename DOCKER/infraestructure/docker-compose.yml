@@ -1,7 +1,7 @@
 services:
 
   emqx:
-    image: emqx/emqx:latest
+    image: emqx/emqx-ee:latest
     container_name: emqx
     restart: on-failure
     ports:
