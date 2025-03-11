@@ -106,8 +106,8 @@ services:
   #   networks:
   #     - infraestructure
 
-  db_auth:
-    image: postgres:13
+  db_mishistema:
+    image: postgres:latest
     container_name: AUTH
     environment:
       - POSTGRES_USER=auth_user
@@ -120,20 +120,6 @@ services:
     networks:
       - infraestructure
 
-  db_iot:
-    image: postgres:13
-    container_name: IOT
-    environment:
-      - POSTGRES_USER=iot_user
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=iot_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - db_iot_data:/var/lib/postgresql/data
-    networks:
-      - infraestructure
-
 networks:
   infraestructure:
     driver: bridge
@@ -141,7 +127,9 @@ networks:
 volumes:
   # mosquitto_data:
   # mosquitto_config:
-  emqx:
+  emqx_log:
+    name: emqx_log
+  emqx_data:
     name: emqx_data
   rabbit_amqp_data:
     name: rabbit_amqp_data
