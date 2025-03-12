@@ -141,7 +141,6 @@ void actualizarSemaforo(int state) {
       Serial.println("Estado 0: Rojo");
       break;
     case 1: // Rojo y amarillo
-      digitalWrite(redPin, HIGH);
       digitalWrite(yellowPin, HIGH);
       Serial.println("Estado 1: Rojo + Amarillo");
       break;
