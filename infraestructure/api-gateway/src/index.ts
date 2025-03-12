@@ -13,7 +13,7 @@ const AUTH_SERVICE = process.env.AUTH_SERVICE!;
 
 // Habilitar CORS para permitir que el frontend Android acceda a esta API
 const corsOptions = {
-  origin: 'http://localhost:3000', // Cambia esta URL según la de tu app Android o frontend
+  origin: 'http://18.118.45.70:8080', // Cambia esta URL según la de tu app Android o frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
