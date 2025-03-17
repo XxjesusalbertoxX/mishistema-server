@@ -1,32 +1,27 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-// Credenciales WiFi y datos del Broker MQTT
 const char* ssid = "arduino";
 const char* password = "00000000";
-const char* mqtt_server = "3.145.207.251"; // Reemplaza con la IP o dominio de tu broker
+const char* mqtt_server = "3.139.69.116"; 
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 
-// Pines para las luces del semáforo
-const int redPin    = 5;   // LED rojo conectado al pin 5
-const int yellowPin = 6;   // LED amarillo conectado al pin 6
-const int greenPin  = 7;   // LED verde conectado al pin 7
+const int redPin    = 6;   
+const int yellowPin = 7;   
+const int greenPin  = 8;   
 
-// Estado del semáforo: true = encendido, false = apagado
 volatile bool semaforoEncendido = false;
 
-// Variables para el ciclo del semáforo
 unsigned long lastChange = 0;
 int currentState = 0;
 
-// Duraciones en milisegundos para cada estado
 const unsigned long stateDurations[] = {
-  5000, // Estado 0: Solo rojo
-  2000, // Estado 1: Rojo + amarillo
-  5000, // Estado 2: Solo verde
-  2000  // Estado 3: Solo amarillo
+  5000, 
+  4000, 
+  5000, 
+  2000  
 };
 
 void setup_wifi() {
@@ -51,7 +46,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Mensaje recibido en el topic: ");
   Serial.println(topic);
 
-  // Convertir payload a String
   String message = "";
   for (unsigned int i = 0; i < length; i++) {
     message += (char)payload[i];
@@ -60,7 +54,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Payload: ");
   Serial.println(message);
 
-  // Si el mensaje es "on" o "off" en el topic "encendido"
   if (String(topic) == "encendido") {
     if (message.equalsIgnoreCase("on")) {
       semaforoEncendido = true;
@@ -81,7 +74,7 @@ void reconnect() {
   // Intentar reconectar hasta lograrlo
   while (!client.connected()) {
     Serial.print("Conectando al broker MQTT...");
-    if (client.connect("MKR_SemaforoClient")) {
+    if (client.connect("MKR_SemaforoClient","sebas","sebas12345")) {
       Serial.println("Conectado");
       // Suscribirse al topic "encendido"
       client.subscribe("encendido");

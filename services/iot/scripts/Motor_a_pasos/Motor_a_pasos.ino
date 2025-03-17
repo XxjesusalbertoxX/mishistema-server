@@ -26,9 +26,8 @@ int motorSteps = 512;  // Pasos iniciales (medio giro)
 
 void setup() {
     Serial.begin(115200);  // Inicia la comunicación serie
-    WiFi.begin(ssid, password);  // Conecta a Wi-Fi
+    WiFi.begin(ssid, password);
 
-    // Espera hasta estar conectado
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
         Serial.println("Conectando a WiFi...");
