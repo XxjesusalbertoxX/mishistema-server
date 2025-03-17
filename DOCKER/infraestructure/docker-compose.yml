@@ -1,20 +1,20 @@
 services:
 
   emqx:
-    image: emqx/emqx-ee:latest
+    image: emqx/emqx:5.8.5
     container_name: emqx
     restart: on-failure
     ports:
       - "${MQTT_PORT}:1883"    # MQTT estándar
       - "${MQTT_WEBSOCKET_PORT}:8083"    # MQTT sobre WebSocket
-      - "18083:18083"  # Dashboard de administración
-      - "8081:8081"    # API REST de EMQX
+      - "${EMQX_DASHBOARD_PORT}:18083"  # Dashboard de administración
+      - "${EMQX_API_REST}:8081"    # API REST de EMQX
     volumes:
       - emqx_data:/opt/emqx/data
       - emqx_log:/opt/emqx/log
     environment:
       - EMQX_NAME=emqx
-      - EMQX_NODE__COOKIE=secretcookie
+      - EMQX_NODE__COOKIE=${EMQX_NODE__COOKIE} ## mishistema2025
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
   # rabbit_mqtt:
@@ -33,8 +33,8 @@ services:
   #     - "5673:5672"
   #     - "15673:15672"
   #   environment:
-  #     RABBITMQ_DEFAULT_USER: rabbit345
-  #     RABBITMQ_DEFAULT_PASS: rabbitseguro345
+  #     RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+  #     RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
   #   volumes:
   #     - rabbit_mqtt_data:/var/lib/rabbitmq
   #     - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
@@ -53,12 +53,12 @@ services:
       retries: 10      # Número de intentos antes de marcar el contenedor como fallido
       start_period: 30s # Tiempo de espera antes de iniciar las comprobaciones de salud
     ports:
-      - "5672:5672"    # Puerto AMQP
-      - "15672:15672"  # Interfaz de administración
+      - "${AMQP_PORT}:5672"    # Puerto AMQP
+      - "${RABBITMQ_DASHBOARD_PORT}:15672"  # Interfaz de administración
     environment:
-      RABBITMQ_ERLANG_COOKIE: 'mysecretcookie'
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin123
+      -  RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE} ## mishistema2025
+      -  RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER} ## mishistema2025
+      -  RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}  ## mishistema2025
     volumes:
       - rabbit_amqp_data:/var/lib/rabbitmq
     networks:
@@ -107,13 +107,13 @@ services:
 
   db_mishistema:
     image: postgres:latest
-    container_name: AUTH
+    container_name: DBMISHISTEMA
     environment:
-      - POSTGRES_USER=auth_user
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=auth_db
+      - POSTGRES_USER=${DB_MISHISTEMA_USER} ## mishistema2025
+      - POSTGRES_PASSWORD=${DB_MISHISTEMA_PASSWORD} ## mishistema2025
+      - POSTGRES_DB=${DB_MISHSISTEMA_NAME} ## db_mishistema
     ports:
-      - "5432:5432"
+      - "${DB_MISHSISTEMA_PORT}:5432"
     volumes:
       - db_auth_data:/var/lib/postgresql/data
     networks:
