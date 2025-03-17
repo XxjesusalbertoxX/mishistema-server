@@ -1,0 +1,58 @@
+name: Deploy to EC2 using GitHub Secrets
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e  # Detener si hay error
+
+            # Verificar si Docker está instalado
+            if ! command -v docker &> /dev/null; then
+              echo "Instalando Docker..."
+              sudo dnf update -y
+              sudo dnf install -y docker
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            fi
+
+            cd arenero-server/DOCKER/infraestructure/
+
+            # Crear el archivo .env automáticamente
+            cat <<EOF > .env
+            MQTT_PORT=${{ secrets.MQTT_PORT }}
+            MQTT_WEBSOCKET_PORT=${{ secrets.MQTT_WEBSOCKET_PORT }}
+            EMQX_NODE__COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+            DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
+            EMQX_API_REST=${{ secrets.EMQX_API_REST }}
+            EMQX_DASHBOARD_PORT=${{ secrets.EMQX_DASHBOARD_PORT }}
+            RABBITMQ_DASHBOARD_PORT=${{ secrets.RABBITMQ_DASHBOARD_PORT }}
+            EOF
+
+            # Asegurar permisos del .env
+            chmod 600 .env
+
+            # Descargar imágenes y levantar contenedores con el .env
+            sudo docker-compose pull
+            sudo docker-compose up -d --remove-orphans
