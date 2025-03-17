@@ -6,40 +6,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: mishistema-production
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Print secrets for verification
-        run: |
-          echo "EC2_USER: ${{ secrets.EC2_USER }}"
-          echo "EC2_HOST: ${{ secrets.EC2_HOST }}"
-          echo "MQTT_PORT: ${{ secrets.MQTT_PORT }}"
-          echo "MQTT_WEBSOCKET_PORT: ${{ secrets.MQTT_WEBSOCKET_PORT }}"
-          echo "EMQX_NODE__COOKIE: ${{ secrets.EMQX_NODE_COOKIE }}"
-          echo "RABBITMQ_ERLANG_COOKIE: ${{ secrets.RABBITMQ_ERLANG_COOKIE }}"
-          echo "RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}"
-          echo "RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_DEFAULT_PASS }}"
-          echo "POSTGRES_USER: ${{ secrets.POSTGRES_USER }}"
-          echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
-          echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
-          echo "DB_MISHISTEMA_USER: ${{ secrets.DB_MISHISTEMA_USER }}"
-          echo "DB_MISHISTEMA_PASSWORD: ${{ secrets.DB_MISHISTEMA_PASSWORD }}"
-          echo "DB_MISHSISTEMA_NAME: ${{ secrets.DB_MISHSISTEMA_NAME }}"
-          echo "EMQX_API_REST: ${{ secrets.EMQX_API_REST }}"
-          echo "EMQX_DASHBOARD_PORT: ${{ secrets.EMQX_DASHBOARD_PORT }}"
-          echo "RABBITMQ_DASHBOARD_PORT: ${{ secrets.RABBITMQ_DASHBOARD_PORT }}"
-
-      - name: Create SSH Key File
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
-
       - name: Deploy to EC2 via SSH
-        run: |
-          ssh -i key.pem "${{ secrets.EC2_USER }}"@"${{ secrets.EC2_HOST }}" << 'EOF'
+        uses: appleboy/ssh-action@v0.1.12
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
             set -e  # Detener si hay error
+
             # Verificar si Docker está instalado
             if ! command -v docker &> /dev/null; then
               echo "Instalando Docker..."
@@ -48,9 +29,11 @@ jobs:
               sudo systemctl start docker
               sudo systemctl enable docker
             fi
+
             cd arenero-server/DOCKER/infraestructure/
+
             # Crear el archivo .env automáticamente
-            cat <<EOT > .env
+            cat <<EOF > .env
             MQTT_PORT=${{ secrets.MQTT_PORT }}
             MQTT_WEBSOCKET_PORT=${{ secrets.MQTT_WEBSOCKET_PORT }}
             EMQX_NODE__COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
@@ -66,10 +49,11 @@ jobs:
             EMQX_API_REST=${{ secrets.EMQX_API_REST }}
             EMQX_DASHBOARD_PORT=${{ secrets.EMQX_DASHBOARD_PORT }}
             RABBITMQ_DASHBOARD_PORT=${{ secrets.RABBITMQ_DASHBOARD_PORT }}
-            EOT
+            EOF
+
             # Asegurar permisos del .env
             chmod 600 .env
+
             # Descargar imágenes y levantar contenedores con el .env
             sudo docker-compose pull
             sudo docker-compose up -d --remove-orphans
-          EOF
