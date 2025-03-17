@@ -30,10 +30,10 @@ jobs:
               sudo systemctl enable docker
             fi
 
-            sudo cd arenero-server/DOCKER/infraestructure/
+            cd arenero-server/DOCKER/infraestructure/
 
             # Crear el archivo .env automáticamente
-            sudo cat <<EOF > .env
+            cat <<EOF > .env
             MQTT_PORT=${{ secrets.MQTT_PORT }}
             MQTT_WEBSOCKET_PORT=${{ secrets.MQTT_WEBSOCKET_PORT }}
             EMQX_NODE__COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
