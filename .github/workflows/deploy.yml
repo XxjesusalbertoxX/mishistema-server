@@ -15,7 +15,7 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ env.EC2_HOST }}
+          host: ${{ vars.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -34,10 +34,10 @@ jobs:
 
             # Crear el archivo .env automáticamente
             cat <<EOF > .env
-            EMQX_MQTT_PORT=${{ env.EMQX_MQTT_PORT }}
-            EMQX_MQTT_WEBSOCKET_PORT=${{ env.EMQX_MQTT_WEBSOCKET_PORT }}
-            EMQX_API_REST=${{ env.EMQX_API_REST }}
-            EMQX_DASHBOARD_PORT=${{ env.EMQX_DASHBOARD_PORT }}
+            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+            EMQX_API_REST=${{ vars.EMQX_API_REST }}
+            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
             EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
             RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
             RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
@@ -45,9 +45,9 @@ jobs:
             DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
             DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
             DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
-            DB_MISHISTEMA_PORT=${{ env.DB_MISHISTEMA_PORT }}
-            RABBITMQ_DASHBOARD_PORT=${{ env.RABBITMQ_DASHBOARD_PORT }}
-            RABBITMQ_AMQP_PORT=${{ env.RABBITMQ_AMQP_PORT }}
+            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
             EOF
 
             # Asegurar permisos del .env
