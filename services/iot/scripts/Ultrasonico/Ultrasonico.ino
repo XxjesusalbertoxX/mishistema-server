@@ -12,8 +12,7 @@ const char* topic = "arenero-ultrasonic-data";
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 
-const int trigPin = 10;
-const int echoPin = 13;
+
 
 void setup_wifi() {
   Serial.print("Conectando a WiFi...");
@@ -75,9 +74,6 @@ void loop() {
   Serial.print("Distancia: ");
   Serial.println(distancia);
 
-  char msg[10]; 
-  sprintf(msg, "%.2f", distancia);
-  client.publish(topic, msg, true);
 
   delay(1000);
 }
