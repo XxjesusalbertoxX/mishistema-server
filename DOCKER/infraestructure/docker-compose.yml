@@ -134,5 +134,5 @@ volumes:
     name: rabbit_amqp_data
   rabbit_mqtt_data:
     name: rabbit_mqtt_data
-  db_auth_data:
+  db_mishistema:
     name: db_mishistema
