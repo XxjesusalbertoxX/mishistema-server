@@ -30,18 +30,6 @@ jobs:
               sudo systemctl enable docker
             fi
 
-            cd arenero-server/infraestructure/api_gateway/
-
-            sudo npm install
-
-            cd ..
-
-            cd arenero-server/infraestructure/websocket/
-
-            sudo npm install
-
-            cd
-            
             cd arenero-server/DOCKER/infraestructure/
 
             # Crear el archivo .env automáticamente
