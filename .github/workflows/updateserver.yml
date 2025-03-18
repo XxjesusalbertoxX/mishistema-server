@@ -41,4 +41,5 @@ jobs:
             cd -
 
             echo "🔄 Reconstruyendo los contenedores Docker con las últimas actualizaciones..."
+            cd DOCKER/infraestructure
             sudo docker-compose up --build -d --remove-orphans  # Reconstruir los contenedores sin descargar las imágenes nuevamente
