@@ -15,6 +15,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check if EC2 server is online
+        run: |
+          echo "🔍 Verificando si el servidor EC2 está disponible..."
+          if nc -zv ${{ vars.EC2_HOST }} 22; then
+            echo "✅ El servidor EC2 está en línea."
+          else
+            echo "❌ El servidor EC2 no está disponible. Abortando el flujo de trabajo."
+            exit 1  # Detiene el flujo de trabajo si el servidor no está disponible
+          fi
+
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -24,8 +34,14 @@ jobs:
           script: |
             set -e  # Detener si hay error
 
-            # Ir a la carpeta raíz del repositorio
-            cd ~/mishistema-server
+            echo "🔍 Verificando si la carpeta 'mishistema-server' existe..."
+            if [ -d ~/mishistema-server ]; then
+              echo "✅ La carpeta 'mishistema-server' existe. Continuando..."
+              cd ~/mishistema-server
+            else
+              echo "❌ La carpeta 'mishistema-server' no existe. Abortando el flujo de trabajo."
+              exit 1
+            fi
 
             echo "🔄 Actualizando repositorio desde GitHub..."
             sudo git pull origin main  # O el nombre de la rama que estás usando
