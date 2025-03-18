@@ -75,7 +75,7 @@ jobs:
             
             echo "✅ Generando archivo .env de apigateway..."
             cat <<EOF > .env
-            APIGATEWAY_PORT==${{ vars.APIGATEWAY_PORT }}
+            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
             AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
             EOF
 
