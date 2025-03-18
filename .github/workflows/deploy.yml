@@ -21,30 +21,69 @@ jobs:
           script: |
             set -e  # Detener si hay error
 
-            # Verificar si Docker está instalado
-            if ! command -v docker &> /dev/null; then
-              echo "Instalando Docker..."
-              sudo dnf update -y
-              sudo dnf install -y docker
-              sudo systemctl start docker
-              sudo systemctl enable docker
+            echo "🔄 Actualizando sistema a la última versión..."
+            sudo dnf upgrade --releasever=2023.6.20250303 -y
+
+            echo "🐳 Instalando Docker y habilitándolo..."
+            sudo dnf install -y docker
+            sudo systemctl enable --now docker
+
+            echo "🔧 Instalando complementos de DNF..."
+            sudo dnf install dnf-plugins-core -y
+
+            echo "📚 Añadiendo repositorio de Docker CE..."
+            sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+            echo "⬇️ Instalando Docker Compose v2.12.2..."
+            sudo curl -L "https://github.com/docker/compose/releases/download/v2.12.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            sudo docker-compose --version
+
+            echo "💻 Instalando Git..."
+            sudo dnf install git -y
+
+            echo "⬇️ Instalando Node.js 18 y npm 11.2.0..."
+            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+            sudo dnf install -y nodejs
+            sudo npm install -g npm@11.2.0
+
+            echo "🔐 Configurando Git..."
+            sudo git config --global user.name "XxjesusalbertoxX"
+            sudo git config --global user.email "villarrealperezjesusalberto@gmail.com"
+
+            echo "📦 Clonando el repositorio arenero-server..."
+            if [ ! -d "arenero-server" ]; then
+              sudo git clone https://github.com/XxjesusalbertoxX/arenero-server.git
+            else
+              echo "✅ El repositorio ya está clonado."
             fi
 
-            cd arenero-server/infraestructure/api_gateway/
+            echo "🛠️ Configurando permisos del repositorio..."
+            sudo chown -R $USER:$USER arenero-server
+            sudo chmod -R 755 arenero-server/DOCKER/infraestructure/
 
+            echo "✅ Cambiando a directorio raíz del repositorio..."
+            cd arenero-server
+
+            # Verificar si Docker está instalado
+            if ! command -v docker &> /dev/null; then
+              echo "❌ Docker no está instalado correctamente. Abortando."
+              exit 1
+            fi
+
+            echo "✅ Instalando dependencias de API Gateway..."
+            cd infraestructure/api_gateway/
             sudo npm install
+            cd -
 
-            cd ..
-
-            cd arenero-server/infraestructure/websocket/
-
+            echo "✅ Instalando dependencias de WebSocket..."
+            cd infraestructure/websocket/
             sudo npm install
+            cd -
 
-            cd
-            
-            cd arenero-server/DOCKER/infraestructure/
+            echo "✅ Generando archivo .env..."
+            cd DOCKER/infraestructure/
 
-            # Crear el archivo .env automáticamente
             cat <<EOF > .env
             EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
             EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
@@ -62,9 +101,9 @@ jobs:
             RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
             EOF
 
-            # Asegurar permisos del .env
+            echo "✅ Asegurando permisos de .env"
             sudo chmod 600 .env
 
-            # Descargar imágenes y levantar contenedores con el .env
+            echo "🔄 Actualizando contenedores Docker..."
             sudo docker-compose pull
             sudo docker-compose up -d --remove-orphans
