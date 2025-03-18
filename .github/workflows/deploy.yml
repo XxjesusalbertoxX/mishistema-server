@@ -71,7 +71,7 @@ jobs:
             fi
 
             echo "✅ Instalando dependencias de API Gateway..."
-            cd infraestructure/api_gateway/
+            cd infraestructure/api-gateway/
             sudo npm install
             cd -
 
