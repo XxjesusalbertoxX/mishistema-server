@@ -25,7 +25,7 @@ jobs:
             cd mishistema-server/infraestructure/api-gateway/
             cat <<EOF > .env
             APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
-            AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
+            AUTH_SERVICE="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
             EOF
             sudo chmod 600 .env
             cd -
