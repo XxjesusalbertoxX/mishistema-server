@@ -31,7 +31,12 @@ jobs:
             sudo git pull origin main  # O el nombre de la rama que estás usando
 
             echo "📦 Instalando dependencias de API Gateway..."
-            cd infraestructure/api_gateway
+            cd infraestructure/api-gateway
+            sudo npm install
+            cd -
+
+            echo "📦 Instalando dependencias de WebSocket..."
+            cd infraestructure/websocket
             sudo npm install
             cd -
 
