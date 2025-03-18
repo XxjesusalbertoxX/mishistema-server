@@ -50,19 +50,19 @@ jobs:
             sudo git config --global user.name "XxjesusalbertoxX"
             sudo git config --global user.email "villarrealperezjesusalberto@gmail.com"
 
-            echo "📦 Clonando el repositorio arenero-server..."
-            if [ ! -d "arenero-server" ]; then
+            echo "📦 Clonando el repositorio mishistema-server..."
+            if [ ! -d "mishistema-server" ]; then
               sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
             else
               echo "✅ El repositorio ya está clonado."
             fi
 
             echo "🛠️ Configurando permisos del repositorio..."
-            sudo chown -R $USER:$USER arenero-server
-            sudo chmod -R 755 arenero-server/DOCKER/infraestructure/
+            sudo chown -R $USER:$USER mishistema-server
+            sudo chmod -R 755 mishistema-server/DOCKER/infraestructure/
 
             echo "✅ Cambiando a directorio raíz del repositorio..."
-            cd arenero-server
+            cd mishistema-server
 
             # Verificar si Docker está instalado
             if ! command -v docker &> /dev/null; then

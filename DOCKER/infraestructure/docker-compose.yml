@@ -81,7 +81,6 @@ services:
     restart: unless-stopped
     ports:
       - "${WEBSOCKET_PORT}:3000"
-    restart: on-failure
     volumes:
       - ../../infraestructure/websocket:/app
     networks:

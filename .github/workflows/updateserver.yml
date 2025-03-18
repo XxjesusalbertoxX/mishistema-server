@@ -25,7 +25,7 @@ jobs:
             set -e  # Detener si hay error
 
             # Ir a la carpeta raíz del repositorio
-            cd ~/arenero-server
+            cd ~/mishistema-server
 
             echo "🔄 Actualizando repositorio desde GitHub..."
             sudo git pull origin main  # O el nombre de la rama que estás usando
