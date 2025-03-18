@@ -49,5 +49,6 @@ jobs:
             RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
             EOF
             sudo chmod 600 .env
+            sudo docker-compose up --build -d --remove-orphans
 
             echo "✅ ¡Archivos .env actualizados correctamente! 🎉"
