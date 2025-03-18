@@ -45,7 +45,6 @@ jobs:
             echo "⬇️ Instalando Node.js 18 y npm 11.2.0..."
             curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
             sudo dnf install -y nodejs
-            sudo npm install -g npm@11.2.0
 
             echo "🔐 Configurando Git..."
             sudo git config --global user.name "XxjesusalbertoxX"
