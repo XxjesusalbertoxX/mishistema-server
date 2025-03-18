@@ -1,0 +1,64 @@
+services:
+  emqx1:
+    image: emqx:5.8.5
+    container_name: emqx1
+    environment:
+      - "EMQX_NODE_NAME=emqx@node1.emqx.io"
+      - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+      - "EMQX_CLUSTER_STATIC_SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
+      - "EMQX_AUTH_USER1_USERNAME=sebas"
+      - "EMQX_AUTH_USER1_PASSWORD=sebas123"
+      - "EMQX_AUTH_USER1_ACL=all"
+    volumes:
+      - ./emqx.conf:/opt/emqx/etc/emqx.conf
+      - emqx1_data:/opt/emqx/data
+      - emqx1_etc:/opt/emqx/etc
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
+    networks:
+      emqx-bridge:
+        aliases:
+          - node1.emqx.io
+    ports:
+      - 1883:1883
+      - 8083:8083
+      - 8084:8084
+      - 8883:8883
+      - 18083:18083
+
+  emqx2:
+    image: emqx:5.8.5
+    container_name: emqx2
+    environment:
+      - "EMQX_NODE_NAME=emqx@node2.emqx.io"
+      - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+      - "EMQX_CLUSTER_STATIC_SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
+      - "EMQX_AUTH_USER1_USERNAME=sebas"
+      - "EMQX_AUTH_USER1_PASSWORD=sebas123"
+      - "EMQX_AUTH_USER1_ACL=all"
+    volumes:
+      - ./emqx.conf:/opt/emqx/etc/emqx.conf
+      - emqx2_data:/opt/emqx/data
+      - emqx2_etc:/opt/emqx/etc
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
+    networks:
+      emqx-bridge:
+        aliases:
+          - node2.emqx.io
+
+networks:
+  emqx-bridge:
+    driver: bridge
+
+volumes:
+  emqx1_data:
+  emqx1_etc:
+  emqx2_data:
+  emqx2_etc:
