@@ -3,7 +3,7 @@ services:
   emqx:
     image: emqx/emqx:5.8.5
     container_name: emqx
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - "${EMQX_MQTT_PORT}:1883"    # MQTT estándar
       - "${EMQX_MQTT_WEBSOCKET_PORT}:8083"    # MQTT sobre WebSocket
@@ -45,7 +45,7 @@ services:
   rabbit_amqp:
     image: rabbitmq:3-management
     container_name: AMQP
-    restart: on-failure
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 15s    # Intervalo entre cada intento de comprobación
@@ -67,8 +67,9 @@ services:
   apigateway:
     build: ../../infraestructure/api-gateway
     container_name: API_GATEWAY
+    restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${APIGATEWAY_PORT}:8080"
     volumes:
       - ../../infraestructure/api-gateway:/app
     networks:
@@ -76,9 +77,10 @@ services:
 
   websocket:
     build: ../../infraestructure/websocket
-    container_name: WEBSOCKET_SERVICE
+    container_name: WEBSOCKET
+    restart: unless-stopped
     ports:
-      - "3005:3000"
+      - "${WEBSOCKET_PORT}:3000"
     restart: on-failure
     volumes:
       - ../../infraestructure/websocket:/app
@@ -108,6 +110,7 @@ services:
   db_mishistema:
     image: postgres:latest
     container_name: DBMISHISTEMA
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=${DB_MISHISTEMA_USER} ## mishistema2025
       - POSTGRES_PASSWORD=${DB_MISHISTEMA_PASSWORD} ## mishistema2025

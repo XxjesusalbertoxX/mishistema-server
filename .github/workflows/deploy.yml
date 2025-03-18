@@ -52,7 +52,7 @@ jobs:
 
             echo "📦 Clonando el repositorio arenero-server..."
             if [ ! -d "arenero-server" ]; then
-              sudo git clone https://github.com/XxjesusalbertoxX/arenero-server.git
+              sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
             else
               echo "✅ El repositorio ya está clonado."
             fi
@@ -72,6 +72,16 @@ jobs:
 
             echo "✅ Instalando dependencias de API Gateway..."
             cd infraestructure/api-gateway/
+            
+            echo "✅ Generando archivo .env de apigateway..."
+            cat <<EOF > .env
+            APIGATEWAY_PORT==${{ vars.APIGATEWAY_PORT }}
+            AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
+            EOF
+
+            echo "✅ Asegurando permisos de .env"
+            sudo chmod 600 .env
+
             sudo npm install
             cd -
 
