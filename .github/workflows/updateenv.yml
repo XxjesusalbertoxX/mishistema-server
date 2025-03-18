@@ -1,0 +1,53 @@
+name: Update .env files on EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-env:
+    runs-on: ubuntu-latest
+    environment: mishistema-production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update .env files on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e  # Detener si hay error
+
+            echo "🔄 Actualizando archivo .env de API Gateway..."
+            cd mishistema-server/infraestructure/api-gateway/
+            cat <<EOF > .env
+            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
+            AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
+            EOF
+            sudo chmod 600 .env
+            cd -
+
+            echo "✅ Actualizando archivo .env en DOCKER/infraestructure..."
+            cd mishistema-server/DOCKER/infraestructure/
+            cat <<EOF > .env
+            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+            EMQX_API_REST=${{ vars.EMQX_API_REST }}
+            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
+            EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+            DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
+            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
+            EOF
+            sudo chmod 600 .env
+
+            echo "✅ ¡Archivos .env actualizados correctamente! 🎉"
