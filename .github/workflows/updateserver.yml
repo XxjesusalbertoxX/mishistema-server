@@ -1,0 +1,39 @@
+name: Update and Rebuild Containers on EC2
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  update-rebuild:
+    runs-on: ubuntu-latest
+    environment: mishistema-production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e  # Detener si hay error
+
+            # Ir a la carpeta raíz del repositorio
+            cd ~/arenero-server
+
+            echo "🔄 Actualizando repositorio desde GitHub..."
+            sudo git pull origin main  # O el nombre de la rama que estás usando
+
+            echo "📦 Instalando dependencias de API Gateway..."
+            cd infraestructure/api_gateway
+            sudo npm install
+            cd -
+
+            echo "🔄 Reconstruyendo los contenedores Docker con las últimas actualizaciones..."
+            sudo docker-compose up --build -d --remove-orphans  # Reconstruir los contenedores sin descargar las imágenes nuevamente
