@@ -1,20 +1,43 @@
 services:
 
   emqx:
-    image: emqx/emqx:5.8.5
+    image: emqx:5.8.5
     container_name: emqx
     restart: unless-stopped
-    ports:
-      - "${EMQX_MQTT_PORT}:1883"    # MQTT estándar
-      - "${EMQX_MQTT_WEBSOCKET_PORT}:8083"    # MQTT sobre WebSocket
-      - "${EMQX_DASHBOARD_PORT}:18083"  # Dashboard de administración
-      - "${EMQX_API_REST}:8081"    # API REST de EMQX
+    environment:
+      - "EMQX_AUTH_USER1_USERNAME=sebas"
+      - "EMQX_AUTH_USER1_PASSWORD=sebas123"
+      - "EMQX_AUTH_USER1_ACL=all"
     volumes:
       - emqx_data:/opt/emqx/data
-      - emqx_log:/opt/emqx/log
-    environment:
-      - EMQX_NAME=emqx
-      - EMQX_NODE_COOKIE=${EMQX_NODE__COOKIE} ## mishistema2025
+      - emqx_etc:/opt/emqx/etc
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 5s
+      timeout: 25s
+      retries: 5
+    ports:
+      - 1883:1883
+      - 8083:8083
+      - 8084:8084
+      - 8883:8883
+      - 18083:18083
+
+  # emqx:
+  #   image: emqx/emqx:5.8.5
+  #   container_name: emqx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${EMQX_MQTT_PORT}:1883"    # MQTT estándar
+  #     - "${EMQX_MQTT_WEBSOCKET_PORT}:8083"    # MQTT sobre WebSocket
+  #     - "${EMQX_DASHBOARD_PORT}:18083"  # Dashboard de administración
+  #     - "${EMQX_API_REST}:8081"    # API REST de EMQX
+  #   volumes:
+  #     - emqx_data:/opt/emqx/data
+  #     - emqx_log:/opt/emqx/log
+  #   environment:
+  #     - EMQX_NAME=emqx
+  #     - EMQX_NODE_COOKIE=${EMQX_NODE__COOKIE} ## mishistema2025
 
   # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
   # rabbit_mqtt:
@@ -138,3 +161,4 @@ volumes:
     name: rabbit_mqtt_data
   db_mishistema:
     name: db_mishistema
+  emqx_etc:
