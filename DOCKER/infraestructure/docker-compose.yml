@@ -126,7 +126,7 @@ services:
   #     - infraestructure
 
   db_mishistema:
-    image: postgres:19
+    image: postgres:17
     container_name: DBMISHISTEMA
     restart: unless-stopped
     environment:
