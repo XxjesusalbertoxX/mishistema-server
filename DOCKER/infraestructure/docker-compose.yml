@@ -5,8 +5,6 @@ services:
     container_name: emqx
     restart: unless-stopped
     environment:
-      - "EMQX_AUTH_USER1_USERNAME=sebas"
-      - "EMQX_AUTH_USER1_PASSWORD=sebas123"
       - "EMQX_AUTH_USER1_ACL=all"
     volumes:
       - emqx_data:/opt/emqx/data
@@ -17,11 +15,9 @@ services:
       timeout: 25s
       retries: 5
     ports:
-      - 1883:1883
-      - 8083:8083
-      - 8084:8084
-      - 8883:8883
-      - 18083:18083
+      - ${EMQX_MQTT_PORT}:1883
+      - ${EMQX_MQTT_WEBSOCKET_PORT}:8083
+      - ${EMQX_DASHBOARD_PORT}:18083
 
   # emqx:
   #   image: emqx/emqx:5.8.5
@@ -130,7 +126,7 @@ services:
   #     - infraestructure
 
   db_mishistema:
-    image: postgres:latest
+    image: postgres:19
     container_name: DBMISHISTEMA
     restart: unless-stopped
     environment:
