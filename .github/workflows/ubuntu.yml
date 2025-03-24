@@ -1,0 +1,87 @@
+name: Deploy to Ubuntu 24.04 LTS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: mishistema-production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Ubuntu via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e  # Detener si hay error
+
+            echo "📂 Verificando si el repositorio existe en ~/Desktop..."
+            if [ ! -d "/home/${{ secrets.EC2_USER }}/Desktop/mishistema-server" ]; then
+              echo "📦 Clonando el repositorio en ~/Desktop..."
+              sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
+            else
+              echo "🔄 Repositorio encontrado, actualizando..."
+              cd /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
+              sudo git reset --hard
+              sudo git pull origin main
+            fi
+
+            echo "✅ Configurando permisos del repositorio..."
+            sudo chown -R $USER:$USER /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
+            sudo chmod -R 755 /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server/DOCKER/infraestructure/
+
+            echo "✅ Cambiando a directorio raíz del repositorio..."
+            cd /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
+
+            echo "✅ Instalando dependencias de API Gateway..."
+            cd infraestructure/api-gateway/
+            
+            echo "✅ Generando archivo .env de apigateway..."
+            cat <<EOF > .env
+            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
+            AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
+            EOF
+
+            echo "✅ Asegurando permisos de .env"
+            sudo chmod 600 .env
+
+            sudo npm install
+            cd -
+
+            echo "✅ Instalando dependencias de WebSocket..."
+            cd infraestructure/websocket/
+            sudo npm install
+            cd -
+
+            echo "✅ Generando archivo .env global..."
+            cd DOCKER/infraestructure/
+
+            cat <<EOF > .env
+            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+            EMQX_API_REST=${{ vars.EMQX_API_REST }}
+            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
+            EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+            DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
+            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
+            EOF
+
+            echo "✅ Asegurando permisos de .env"
+            sudo chmod 600 .env
+
+            echo "🔄 Actualizando contenedores Docker..."
+            sudo docker compose pull
+            sudo docker compose up -d --remove-orphans
