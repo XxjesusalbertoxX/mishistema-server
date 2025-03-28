@@ -1,0 +1,28 @@
+{
+  "name": "iot-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon app.ts"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.40.0",
+    "express": "^4.21.2",
+    "morgan": "~1.9.1",
+    "mqtt": "^5.10.4",
+    "nodemon": "^3.1.9",
+    "pg": "^8.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.11",
+    "@types/ws": "^8.18.0",
+    "drizzle-kit": "^0.30.5",
+    "tsx": "^4.19.3"
+  }
+}
