@@ -1,0 +1,26 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "npx drizzle-kit migrate --config=./drizzle.config.ts",
+    "generate": "npx drizzle-kit generate --config=./drizzle.config.ts",
+    "studio": "npx drizzle-kit studio --config=./drizzle.config.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.41.0",
+    "pg": "^8.14.1",
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.30.6",
+    "tsx": "^4.19.3"
+  }
+}

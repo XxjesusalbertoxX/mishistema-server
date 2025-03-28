@@ -1,0 +1,88 @@
+###
+
+@baseUrl = http://localhost:888/devices
+
+###
+
+### GET para obtener todos los dispositivos
+GET {{baseUrl}}/all
+###
+
+### POST para crear un dispositivo
+
+POST {{baseUrl}}/
+Content-Type: application/json
+
+{
+    "name": "Dispositivo 2",
+    "description": "Dispositivo de pene",
+    "code": "4b"
+
+}
+
+###
+
+### GET para obtener un dispositivo por su id
+
+GET {{baseUrl}}/id/453fe37e-651e-4b4d-9785-8eb436f1dcda
+
+###
+
+### GET para obtener un dispositivo por su code
+
+GET {{baseUrl}}/code/4b
+
+###
+
+### Conjunto de PUT para editar los parametros de un dispositivo
+
+### editando su nombre
+
+PUT {{baseUrl}}/51547fe4-589c-4aa5-bec9-586ba4017af5
+Content-Type: application/json
+
+{
+    "name": "Dispositivo de pende"
+}
+
+###
+### editando su codigo
+
+PUT {{baseUrl}}/51547fe4-589c-4aa5-bec9-586ba4017af5
+Content-Type: application/json
+
+{
+    "code": "Dispositivo de pende"
+}
+
+###
+
+### editando su descripcion
+
+PUT {{baseUrl}}/51547fe4-589c-4aa5-bec9-586ba4017af5
+Content-Type: application/json
+
+{
+  "description": "Dispositivo de pende"
+}
+
+###
+
+### editando todo a la vez
+
+PUT {{baseUrl}}/51547fe4-589c-4aa5-bec9-586ba4017af5
+Content-Type: application/json
+
+{
+  "code": "45ba",
+  "name": "Dispositivo 2",
+  "description": "prueba"
+}
+
+###
+
+### DELETE para eliminar un dispositivo
+
+DELETE {{baseUrl}}/51547fe4-589c-4aa5-bec9-586ba4017af5
+
+###

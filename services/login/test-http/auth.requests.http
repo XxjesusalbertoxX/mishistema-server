@@ -1,0 +1,15 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=WebStorm
+
+###
+
+POST localhost:777/auth/register
+Content-Type: application/json
+
+{
+    "name": "Sebastian",
+    "phone": "8714980536",
+    "email": "sebas@gmail.com",
+    "password": "12345"
+}

@@ -1,0 +1,16 @@
+###
+@base_url = http://localhost:777
+
+###
+
+### Post para registar un usuario
+
+POST {{base_url}}/auth/register
+Content-Type: application/json
+
+{
+    "name": "SebastianRodriguez",
+    "email": "sebastian@hotmail.com",
+    "password": "123456",
+    "phone": "1234567899"
+}

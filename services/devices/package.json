@@ -1,9 +1,9 @@
 {
-  "name": "login",
+  "name": "devices",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start-auth": "nodemon app.ts",
+    "start-devices": "nodemon app.ts",
     "migrate": "npx drizzle-kit migrate --config=./drizzle.config.ts",
     "generate": "npx drizzle-kit generate --config=./drizzle.config.ts",
     "studio": "npx drizzle-kit studio --config=./drizzle.config.ts"
@@ -13,23 +13,19 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.41.0",
+    "drizzle-orm": "^0.40.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "morgan": "~1.9.1",
+    "nodemon": "^3.1.9",
     "passport": "^0.7.0",
-    "pg": "^8.14.0"
+    "pg": "^8.14.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.13.10",
-    "@types/passport": "^1.0.17",
-    "@types/passport-local": "^1.0.38",
+    "@types/express": "^5.0.1",
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.30.5",
-    "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"

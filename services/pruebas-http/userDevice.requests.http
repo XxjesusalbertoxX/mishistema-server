@@ -1,0 +1,41 @@
+###
+
+@baseurl = http://localhost:888/user-devices
+
+###
+
+### POST para registar un userDevice
+
+POST {{baseurl}}
+Content-Type: application/json
+
+{
+    "user_id": "02455067-d459-4a5d-84ba-45b6a00b9e7b",
+    "device_id": "453fe37e-651e-4b4d-9785-8eb436f1dcda"
+}
+
+###
+
+### GET para obtener todos los userDevices
+
+GET {{baseurl}}
+
+###
+
+### GET para obtener los devices de un user por su user_id
+
+GET {{baseurl}}/02455067-d459-4a5d-84ba-45b6a00b9e7b
+
+###
+
+### GET para obtener un userDevice por su id
+
+GET {{baseurl}}/device/9281114a-5aa8-48dd-82a9-9bc9f6542263
+
+###
+
+### DELETE para eliminar un userDevice por su id
+
+DELETE {{baseurl}}/9281114a-5aa8-48dd-82a9-9bc9f6542263
+
+###
