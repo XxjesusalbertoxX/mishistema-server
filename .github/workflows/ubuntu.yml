@@ -25,14 +25,9 @@ jobs:
             sudo git config --global user.email "villarrealperezjesusalberto@gmail.com"
 
             echo "📦 Clonando el repositorio mishistema-server..."
-            if [ ! -d "mishistema-server" ]; then
-              sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
-            else
-              echo "✅ El repositorio ya está clonado."
-            fi
-
+            sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
+            
             # API Gateway
-            echo "🔄 Actualizando archivo .env de API Gateway..."
             if [ -d "~/mishistema-server/infraestructure/api-gateway/" ]; then
               cd ~/mishistema-server/infraestructure/api-gateway/
               npm i
@@ -42,88 +37,76 @@ jobs:
             EOF
               sudo chown $USER:$USER .env
               sudo chmod 600 .env
-              cd - 
+              cd -
             fi
-
+              
             # WebSocket
-            echo "🔄 Actualizando archivo .env de WebSocket..."
             if [ -d "~/mishistema-server/infraestructure/web-socket-traductor/" ]; then
               cd ~/mishistema-server/infraestructure/web-socket-traductor/
               npm i
               cat <<EOF > .env
-              MQTT_BROKER=mqtt://${{ vars.EC2_HOST }}:${{ vars.EMQX_MQTT_PORT }}
-              WS_PORT=${{ vars.WS_PORT }}
-              MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
-              MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
-              EOF
+            MQTT_BROKER=mqtt://${{ vars.EC2_HOST }}:${{ vars.EMQX_MQTT_PORT }}
+            WS_PORT=${{ vars.WS_PORT }}
+            MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+            MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+            EOF
               sudo chown $USER:$USER .env
               sudo chmod 600 .env
-              cd - 
+              cd -
             fi
-
+              
             # Devices
-            echo "🔄 Actualizando archivo .env de Devices..."
             if [ -d "~/devices/" ]; then
               cd ~/devices/
               sudo npm i
               cat <<EOF > .env
-              API_PORT=${{ vars.DEVICES_PORT }}
-              JWT_SECRET=${{ secrets.JWT_SECRET }}
-              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
-              EOF
+            API_PORT=${{ vars.DEVICES_PORT }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+            EOF
               sudo chown $USER:$USER .env
               sudo chmod 600 .env
-              cd - 
+              cd -
             fi
-
+              
             # Login
-            echo "🔄 Actualizando archivo .env de Login..."
             if [ -d "~/login/" ]; then
               cd ~/login/
               sudo npm i
               cat <<EOF > .env
-              API_PORT=${{ vars.LOGIN_PORT }}
-              JWT_SECRET=${{ secrets.JWT_SECRET }}
-              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
-              EOF
+            API_PORT=${{ vars.LOGIN_PORT }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+            EOF
               sudo chown $USER:$USER .env
               sudo chmod 600 .env
-              cd - 
+              cd -
             fi
-
+              
             # Docker Infraestructure
-            echo "✅ Actualizando archivo .env en DOCKER/infraestructure..."
             if [ -d "~/mishistema-server/DOCKER/infraestructure/" ]; then
               cd ~/mishistema-server/DOCKER/infraestructure/
               cat <<EOF > .env
-              EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
-              EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
-              EMQX_API_REST=${{ vars.EMQX_API_REST }}
-              EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
-              EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
-              RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
-              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
-              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
-              DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
-              DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
-              DB_MISHISTEMA_NAME=${{ secrets.DB_MISHISTEMA_NAME }}
-              DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
-              RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
-              RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
-              EOF
+            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+            EMQX_API_REST=${{ vars.EMQX_API_REST }}
+            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
+            EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+            DB_MISHISTEMA_NAME=${{ secrets.DB_MISHISTEMA_NAME }}
+            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
+            EOF
               sudo chmod 600 .env
               cd -
-
+              
               # Docker Compose
-              echo "🔄 Actualizando contenedores Docker..."
               cd ~/mishistema-server/DOCKER/infraestructure/
               sudo docker-compose pull
               sudo docker-compose up -d --remove-orphans
             fi
-
-
-            sudo chmod 600 .env
-
-            echo "🔄 Actualizando contenedores Docker..."
-            sudo docker compose pull
-            sudo docker compose up -d --remove-orphans
