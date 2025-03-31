@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update .env files on EC2
+      - name: Create .env files on ubuntu
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ vars.EC2_HOST }}
@@ -56,9 +56,9 @@ jobs:
             fi
               
             # Devices
-            if [ -d "$HOME/devices/" ]; then
-              cd $HOME/devices/
-              sudo npm i
+            if [ -d "$HOME/mishistema-server/services/devices/" ]; then
+              cd $HOME/mishistema-server/services/devices/
+              npm i
               cat <<EOF > .env
             API_PORT=${{ vars.DEVICES_PORT }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -70,9 +70,9 @@ jobs:
             fi
               
             # Login
-            if [ -d "$HOME/login/" ]; then
-              cd $HOME/login/
-              sudo npm i
+            if [ -d "$HOME/mishistema-server/services/login/" ]; then
+              cd $HOME/mishistema-server/services/login/
+              npm i
               cat <<EOF > .env
             API_PORT=${{ vars.LOGIN_PORT }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
