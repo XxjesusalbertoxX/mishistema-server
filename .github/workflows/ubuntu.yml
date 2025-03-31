@@ -28,8 +28,8 @@ jobs:
             sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
             
             # API Gateway
-            if [ -d "~/mishistema-server/infraestructure/api-gateway/" ]; then
-              cd ~/mishistema-server/infraestructure/api-gateway/
+            if [ -d "$HOME/mishistema-server/infraestructure/api-gateway/" ]; then
+              cd $HOME/mishistema-server/infraestructure/api-gateway/
               npm i
               cat <<EOF > .env
             APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
@@ -41,8 +41,8 @@ jobs:
             fi
               
             # WebSocket
-            if [ -d "~/mishistema-server/infraestructure/web-socket-traductor/" ]; then
-              cd ~/mishistema-server/infraestructure/web-socket-traductor/
+            if [ -d "$HOME/mishistema-server/infraestructure/web-socket-traductor/" ]; then
+              cd $HOME/mishistema-server/infraestructure/web-socket-traductor/
               npm i
               cat <<EOF > .env
             MQTT_BROKER=mqtt://${{ vars.EC2_HOST }}:${{ vars.EMQX_MQTT_PORT }}
@@ -56,8 +56,8 @@ jobs:
             fi
               
             # Devices
-            if [ -d "~/devices/" ]; then
-              cd ~/devices/
+            if [ -d "$HOME/devices/" ]; then
+              cd $HOME/devices/
               sudo npm i
               cat <<EOF > .env
             API_PORT=${{ vars.DEVICES_PORT }}
@@ -70,8 +70,8 @@ jobs:
             fi
               
             # Login
-            if [ -d "~/login/" ]; then
-              cd ~/login/
+            if [ -d "$HOME/login/" ]; then
+              cd $HOME/login/
               sudo npm i
               cat <<EOF > .env
             API_PORT=${{ vars.LOGIN_PORT }}
@@ -84,8 +84,8 @@ jobs:
             fi
               
             # Docker Infraestructure
-            if [ -d "~/mishistema-server/DOCKER/infraestructure/" ]; then
-              cd ~/mishistema-server/DOCKER/infraestructure/
+            if [ -d "$HOME/mishistema-server/DOCKER/infraestructure/" ]; then
+              cd $HOME/mishistema-server/DOCKER/infraestructure/
               cat <<EOF > .env
             EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
             EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
@@ -106,7 +106,7 @@ jobs:
               cd -
               
               # Docker Compose
-              cd ~/mishistema-server/DOCKER/infraestructure/
+              cd $HOME/mishistema-server/DOCKER/infraestructure/
               sudo docker-compose pull
               sudo docker-compose up -d --remove-orphans
             fi
