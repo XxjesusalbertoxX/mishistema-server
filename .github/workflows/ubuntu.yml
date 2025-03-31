@@ -1,10 +1,10 @@
-name: Deploy to Ubuntu 24.04 LTS
+name: Update .env files on EC2
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  update-env:
     runs-on: ubuntu-latest
     environment: mishistema-production
 
@@ -12,75 +12,106 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy to Ubuntu via SSH
+      - name: Update .env files on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ vars.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 2222
           script: |
             set -e  # Detener si hay error
 
-            echo "📂 Verificando si el repositorio existe en ~/Desktop..."
-            if [ ! -d "/home/${{ secrets.EC2_USER }}/Desktop/mishistema-server" ]; then
-              echo "📦 Clonando el repositorio en ~/Desktop..."
-              sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
-            else
-              echo "🔄 Repositorio encontrado, actualizando..."
-              cd /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
-              sudo git reset --hard
-              sudo git pull origin main
+            # API Gateway
+            echo "🔄 Actualizando archivo .env de API Gateway..."
+            if [ -d "~/mishistema-server/infraestructure/api-gateway/" ]; then
+              cd ~/mishistema-server/infraestructure/api-gateway/
+              npm i
+              cat <<EOF > .env
+              APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
+              LOGIN_SERVICE="http://login:${{ vars.LOGIN_PORT }}"
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd - 
             fi
 
-            echo "✅ Configurando permisos del repositorio..."
-            sudo chown -R $USER:$USER /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
-            sudo chmod -R 755 /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server/DOCKER/infraestructure/
+            # WebSocket
+            echo "🔄 Actualizando archivo .env de WebSocket..."
+            if [ -d "~/mishistema-server/infraestructure/web-socket-traductor/" ]; then
+              cd ~/mishistema-server/infraestructure/web-socket-traductor/
+              npm i
+              cat <<EOF > .env
+              MQTT_BROKER=mqtt://${{ vars.EC2_HOST }}:${{ vars.EMQX_MQTT_PORT }}
+              WS_PORT=${{ vars.WS_PORT }}
+              MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+              MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd - 
+            fi
 
-            echo "✅ Cambiando a directorio raíz del repositorio..."
-            cd /home/${{ secrets.EC2_USER }}/Desktop/mishistema-server
+            # Devices
+            echo "🔄 Actualizando archivo .env de Devices..."
+            if [ -d "~/devices/" ]; then
+              cd ~/devices/
+              sudo npm i
+              cat <<EOF > .env
+              API_PORT=${{ vars.DEVICES_PORT }}
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd - 
+            fi
 
-            echo "✅ Instalando dependencias de API Gateway..."
-            cd infraestructure/api-gateway/
-            
-            echo "✅ Generando archivo .env de apigateway..."
-            cat <<EOF > .env
-            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
-            AUTH_SERVICE_ENDPOINT="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
-            EOF
+            # Login
+            echo "🔄 Actualizando archivo .env de Login..."
+            if [ -d "~/login/" ]; then
+              cd ~/login/
+              sudo npm i
+              cat <<EOF > .env
+              API_PORT=${{ vars.LOGIN_PORT }}
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd - 
+            fi
 
-            echo "✅ Asegurando permisos de .env"
-            sudo chmod 600 .env
+            # Docker Infraestructure
+            echo "✅ Actualizando archivo .env en DOCKER/infraestructure..."
+            if [ -d "~/mishistema-server/DOCKER/infraestructure/" ]; then
+              cd ~/mishistema-server/DOCKER/infraestructure/
+              cat <<EOF > .env
+              EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+              EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+              EMQX_API_REST=${{ vars.EMQX_API_REST }}
+              EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
+              EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+              RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+              DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+              DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+              DB_MISHISTEMA_NAME=${{ secrets.DB_MISHISTEMA_NAME }}
+              DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+              RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+              RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
+              EOF
+              sudo chmod 600 .env
+              cd -
 
-            sudo npm install
-            cd -
+              # Docker Compose
+              echo "🔄 Actualizando contenedores Docker..."
+              cd ~/mishistema-server/DOCKER/infraestructure/
+              sudo docker-compose pull
+              sudo docker-compose up -d --remove-orphans
+            fi
 
-            echo "✅ Instalando dependencias de WebSocket..."
-            cd infraestructure/websocket/
-            sudo npm install
-            cd -
 
-            echo "✅ Generando archivo .env global..."
-            cd DOCKER/infraestructure/
-
-            cat <<EOF > .env
-            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
-            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
-            EMQX_API_REST=${{ vars.EMQX_API_REST }}
-            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
-            EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
-            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
-            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
-            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
-            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
-            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
-            DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
-            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
-            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
-            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
-            EOF
-
-            echo "✅ Asegurando permisos de .env"
             sudo chmod 600 .env
 
             echo "🔄 Actualizando contenedores Docker..."
