@@ -37,9 +37,9 @@ jobs:
               cd ~/mishistema-server/infraestructure/api-gateway/
               npm i
               cat <<EOF > .env
-              APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
-              LOGIN_SERVICE="http://login:${{ vars.LOGIN_PORT }}"
-              EOF
+            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
+            LOGIN_SERVICE="http://login:${{ vars.LOGIN_PORT }}"
+            EOF
               sudo chown $USER:$USER .env
               sudo chmod 600 .env
               cd - 
