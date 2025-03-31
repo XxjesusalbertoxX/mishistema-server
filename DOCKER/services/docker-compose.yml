@@ -4,42 +4,31 @@ services:
     build: ../../services/login
     container_name: LOGIN_SERVICE
     ports:
-      - "3001:3000"
+      - "3000:3000"
     volumes:
       - ../../services/login:/app
       - /app/node_modules
     networks:
       - service
-
-  auth:
-    build: ../../services/auth
-    container_name: AUTH_SERVICE
+  devices:
+    build: ../../services/devices
+    container_name: DEVICES_SERVICE
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../../services/devices:/app
+    networks:
+      - service
+  places:
+    build: ../../services/devices
+    container_name: PLACES_SERVICE
     ports:
       - "3002:3000"
     volumes:
-      - ../../services/auth:/app
+      - ../../services/places:/app
     networks:
       - service
 
-  notifications:
-    build: ../../services/notification
-    container_name: NOTIFICATION_SERVICE
-    ports:
-      - "3003:3000"
-    volumes:
-      - ../../services/notification:/app
-    networks:
-      - service
-
-  iot:
-    build: ../../services/iot
-    container_name: IOT_SERVICE
-    ports:
-      - "3004:3000"
-    volumes:
-      - ../../services/iot:/app
-    networks:
-      - service
 
 networks:
   service:

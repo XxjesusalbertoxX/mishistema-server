@@ -8,7 +8,9 @@ dotenv.config();
 
 const app = express();
 const APIGATEWAY_PORT = Number(process.env.APIGATEWAY_PORT) || 8080;
-const AUTH_SERVICE_ENDPOINT = process.env.AUTH_SERVICE!;
+const LOGIN_SERVICE_ENDPOINT = process.env.LOGIN_SERVICE!;
+const DEVICES_SERVICE_ENDPOINT = process.env.DEVICES_SERVICE!;
+const PLACES_SERVICE_ENDPOINT = process.env.PLACES_SERVICE!;
 
 // Habilitar CORS para permitir que el frontend Android acceda a esta API
 const corsOptions = {
@@ -20,7 +22,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Proxy para redirigir solicitudes al servicio de autenticación
-app.use('/auth', proxy(AUTH_SERVICE_ENDPOINT));
+app.use('/login', proxy(LOGIN_SERVICE_ENDPOINT));
+app.use('/devices', proxy(DEVICES_SERVICE_ENDPOINT));
+app.use('/places', proxy(PLACES_SERVICE_ENDPOINT));
 
 // Iniciar el servidor
 app.listen(APIGATEWAY_PORT, () => {

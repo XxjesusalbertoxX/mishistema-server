@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import deviceRouter from "./src/routers/device.router";
 import userDeviceRouter from "./src/routers/userDevice.router";
 
+dotenv.config();
 const app = express();
 
 app.use(express.json());

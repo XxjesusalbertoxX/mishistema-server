@@ -21,34 +21,133 @@ jobs:
           script: |
             set -e  # Detener si hay error
 
+            # API Gateway
             echo "🔄 Actualizando archivo .env de API Gateway..."
-            cd mishistema-server/infraestructure/api-gateway/
-            cat <<EOF > .env
-            APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
-            AUTH_SERVICE="http://${{ vars.EC2_SEBASTIAN_HOST }}:${{ vars.AUTH_SERVICE_PORT }}"
-            EOF
-            sudo chmod 600 .env
-            cd -
+            if [ -d "~/mishistema-server/infraestructure/api-gateway/" ]; then
+              cd ~/mishistema-server/infraestructure/api-gateway/
+              npm i
+              cat <<EOF > .env
+              APIGATEWAY_PORT=${{ vars.APIGATEWAY_PORT }}
+              LOGIN_SERVICE="http://login:${{ vars.LOGIN_PORT }}"
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta api-gateway. Abortando..."
+              exit 1
+            fi
 
+            # Web-socket
+            echo "🔄 Actualizando archivo .env de API Gateway..."
+            if [ -d "~/mishistema-server/infraestructure/web-socket-traductor/" ]; then
+              cd ~/mishistema-server/infraestructure/web-socket-traductor/
+              npm i
+              cat <<EOF > .env
+              MQTT_BROKER=mqtt://${{vars.EC2_HOST}}:${{vars.EMQX_MQTT_PORT}}
+              WS_PORT=${{vars.WS_PORT}}
+              MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+              MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta api-gateway. Abortando..."
+              exit 1
+            fi
+
+            # Devices
+            echo "🔄 Actualizando archivo .env de Devices..."
+            if [ -d "~/devices/" ]; then
+              cd ~/devices/
+              sudo npm i
+              cat <<EOF > .env
+              API_PORT=${{ vars.DEVICES_PORT }}
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta devices. Abortando..."
+              exit 1
+            fi
+
+            # Devices
+            echo "🔄 Actualizando archivo .env de Devices..."
+            if [ -d "~/places/" ]; then
+              cd ~/devices/
+              sudo npm i
+              cat <<EOF > .env
+              API_PORT=${{ vars.PLACES_PORT }}
+              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta devices. Abortando..."
+              exit 1
+            fi
+
+            # Login
+            echo "🔄 Actualizando archivo .env de Login..."
+            if [ -d "~/login/" ]; then
+              cd ~/login/
+              sudo npm i
+              cat <<EOF > .env
+              API_PORT=${{ vars.LOGIN_PORT }}
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              DATABASE_URL=postgres://${{ secrets.DB_MISHISTEMA_USER }}:${{ secrets.DB_MISHISTEMA_PASSWORD }}@${{ vars.EC2_HOST }}:${{ vars.DB_MISHISTEMA_PORT }}/${{ secrets.DB_MISHISTEMA_NAME }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta login. Abortando..."
+              exit 1
+            fi
+
+            # Docker Infraestructure
             echo "✅ Actualizando archivo .env en DOCKER/infraestructure..."
-            cd mishistema-server/DOCKER/infraestructure/
-            cat <<EOF > .env
-            EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
-            EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
-            EMQX_API_REST=${{ vars.EMQX_API_REST }}
-            EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
-            EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
-            RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
-            RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
-            RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
-            DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
-            DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
-            DB_MISHSISTEMA_NAME=${{ secrets.DB_MISHSISTEMA_NAME }}
-            DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
-            RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
-            RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
-            EOF
-            sudo chmod 600 .env
-            sudo docker-compose up --build -d --remove-orphans
+            if [ -d "~/mishistema-server/DOCKER/infraestructure/" ]; then
+              cd ~/mishistema-server/DOCKER/infraestructure/
+              cat <<EOF > .env
+              EMQX_MQTT_PORT=${{ vars.EMQX_MQTT_PORT }}
+              EMQX_MQTT_WEBSOCKET_PORT=${{ vars.EMQX_MQTT_WEBSOCKET_PORT }}
+              EMQX_API_REST=${{ vars.EMQX_API_REST }}
+              EMQX_DASHBOARD_PORT=${{ vars.EMQX_DASHBOARD_PORT }}
+              EMQX_NODE_COOKIE=${{ secrets.EMQX_NODE_COOKIE }}
+              RABBITMQ_ERLANG_COOKIE=${{ secrets.RABBITMQ_ERLANG_COOKIE }}
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }}
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }}
+              DB_MISHISTEMA_USER=${{ secrets.DB_MISHISTEMA_USER }}
+              DB_MISHISTEMA_PASSWORD=${{ secrets.DB_MISHISTEMA_PASSWORD }}
+              DB_MISHISTEMA_NAME=${{ secrets.DB_MISHISTEMA_NAME }}
+              DB_MISHISTEMA_PORT=${{ vars.DB_MISHISTEMA_PORT }}
+              RABBITMQ_DASHBOARD_PORT=${{ vars.RABBITMQ_DASHBOARD_PORT }}
+              RABBITMQ_AMQP_PORT=${{ vars.RABBITMQ_AMQP_PORT }}
+              EOF
+              sudo chown $USER:$USER .env
+              sudo chmod 600 .env
+              cd -
+            else
+              echo "❌ No se encontró la carpeta DOCKER/infraestructure. Abortando..."
+              exit 1
+            fi
+
+            # Reiniciar Docker si hay cambios
+            echo "🚀 Verificando estado de Docker..."
+            if sudo docker-compose ps | grep "Up"; then
+              echo "⚡️ Servicios corriendo, aplicando cambios..."
+              sudo docker-compose up --build -d --remove-orphans
+            else
+              echo "🚀 Iniciando Docker por primera vez..."
+              sudo docker-compose up -d
+            fi
 
             echo "✅ ¡Archivos .env actualizados correctamente! 🎉"

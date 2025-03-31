@@ -1,5 +1,5 @@
 services:
-
+  # Broker EMQX
   emqx:
     image: emqx:5.8.5
     container_name: emqx
@@ -18,143 +18,159 @@ services:
       - ${EMQX_MQTT_PORT}:1883
       - ${EMQX_MQTT_WEBSOCKET_PORT}:8083
       - ${EMQX_DASHBOARD_PORT}:18083
+    networks:
+      - mishistema
 
-  # emqx:
-  #   image: emqx/emqx:5.8.5
-  #   container_name: emqx
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${EMQX_MQTT_PORT}:1883"    # MQTT estándar
-  #     - "${EMQX_MQTT_WEBSOCKET_PORT}:8083"    # MQTT sobre WebSocket
-  #     - "${EMQX_DASHBOARD_PORT}:18083"  # Dashboard de administración
-  #     - "${EMQX_API_REST}:8081"    # API REST de EMQX
-  #   volumes:
-  #     - emqx_data:/opt/emqx/data
-  #     - emqx_log:/opt/emqx/log
-  #   environment:
-  #     - EMQX_NAME=emqx
-  #     - EMQX_NODE_COOKIE=${EMQX_NODE__COOKIE} ## mishistema2025
-
-  # Broker MQTT con plugin habilitado (por ejemplo, rabbitmq_mqtt)
-  # rabbit_mqtt:
-  #   image: rabbitmq:management
-  #   container_name: MQTT
-  #   restart: on-failure
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-  #     interval: 20s    # Intervalo entre cada intento de comprobación
-  #     timeout: 10s     # Tiempo máximo para ejecutar la comprobación
-  #     retries: 10      # Número de intentos antes de marcar el contenedor como fallido
-  #     start_period: 40s # Tiempo de espera antes de iniciar las comprobaciones de salud
-  #   ports:
-  #     - "1883:1883"    # Puerto MQTT (para comunicación con Arduino)
-  #     # Puedes remapear los puertos AMQP/management si es necesario:
-  #     - "5673:5672"
-  #     - "15673:15672"
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-  #     RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-  #   volumes:
-  #     - rabbit_mqtt_data:/var/lib/rabbitmq
-  #     - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
-  #   networks:
-  #     - infraestructure
-
-  # Broker AMQP para comunicación interna entre microservicios
+  # Broker AMQP (RabbitMQ) para comunicación interna
   rabbit_amqp:
     image: rabbitmq:3-management
     container_name: AMQP
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 15s    # Intervalo entre cada intento de comprobación
-      timeout: 10s     # Tiempo máximo para ejecutar la comprobación
-      retries: 10      # Número de intentos antes de marcar el contenedor como fallido
-      start_period: 30s # Tiempo de espera antes de iniciar las comprobaciones de salud
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     ports:
-      - "${RABBITMQ_AMQP_PORT}:5672"    # Puerto AMQP
-      - "${RABBITMQ_DASHBOARD_PORT}:15672"  # Interfaz de administración
+      - "${RABBITMQ_AMQP_PORT}:5672"
+      - "${RABBITMQ_DASHBOARD_PORT}:15672"
     environment:
-      -  RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE} ## mishistema2025
-      -  RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER} ## mishistema2025
-      -  RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}  ## mishistema2025
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_ERLANG_COOKIE}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     volumes:
       - rabbit_amqp_data:/var/lib/rabbitmq
     networks:
-      - infraestructure
-  
-  apigateway:
-    build: ../../infraestructure/api-gateway
-    container_name: API_GATEWAY
-    restart: unless-stopped
-    ports:
-      - "${APIGATEWAY_PORT}:8080"
-    volumes:
-      - ../../infraestructure/api-gateway:/app
-    networks:
-      - infraestructure
+      - mishistema
 
-  websocket:
-    build: ../../infraestructure/websocket
-    container_name: WEBSOCKET
-    restart: unless-stopped
-    ports:
-      - "${WEBSOCKET_PORT}:3000"
-    volumes:
-      - ../../infraestructure/websocket:/app
-    networks:
-      - infraestructure
-
-
-  # mqtt_broker_mosquitto:
-  #   image: eclipse-mosquitto:2
-  #   container_name: mosquitto_broker
-  #   restart: on-failure
-  #   healthcheck:
-  #     test: ["CMD", "sh", "-c", "nc -z localhost 1883"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
-  #   ports:
-  #     - "1883:1883"    # Protocolo MQTT
-  #     - "9001:9001"    # Websocket para MQTT (si se usa)
-  #   volumes:
-  #     - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-  #     - ./mosquitto-data:/mosquitto/data
-  #   networks:
-  #     - infraestructure
-
+  # Base de datos
   db_mishistema:
     image: postgres:17
     container_name: DBMISHISTEMA
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DB_MISHISTEMA_USER} ## mishistema2025
-      - POSTGRES_PASSWORD=${DB_MISHISTEMA_PASSWORD} ## mishistema2025
-      - POSTGRES_DB=${DB_MISHSISTEMA_NAME} ## db_mishistema
+      - POSTGRES_USER=${DB_MISHISTEMA_USER}
+      - POSTGRES_PASSWORD=${DB_MISHISTEMA_PASSWORD}
+      - POSTGRES_DB=${DB_MISHISTEMA_NAME}
     ports:
       - "${DB_MISHISTEMA_PORT}:5432"
     volumes:
       - db_mishistema:/var/lib/postgresql/data
     networks:
-      - infraestructure
+      - mishistema
+
+  # API Gateway
+  apigateway:
+    build: ../../infraestructure/api-gateway
+    container_name: API_GATEWAY
+    restart: unless-stopped
+    env_file:
+      - ../../infraestructure/apigateway/.env
+    ports:
+      - "${APIGATEWAY_PORT}:8080"
+    volumes:
+      - ../../infraestructure/api-gateway:/app
+    depends_on:
+      - emqx
+      - rabbit_amqp
+      - db_mishistema
+    networks:
+      - mishistema
+
+  # Websocket
+  websocket:
+    build: ../../infraestructure/web-socket-traductor
+    container_name: WEBSOCKET_PROXY
+    restart: unless-stopped
+    env_file:
+      - ../../infraestructure/web-socket-traductor/.env
+    ports:
+      - "${WS_PORT}:8888"
+    volumes:
+      - ../../infraestructure/web-socket-traductor:/app
+      - ../../infraestructure/web-socket-traductor/.env:/app/.env  # Montaje del archivo .env
+    depends_on:
+      - emqx
+      - rabbit_amqp
+      - db_mishistema
+      - apigateway
+    networks:
+      - mishistema
+
+  # Servicio Login
+  login:
+    build: ../../services/login
+    container_name: LOGIN_SERVICE
+    ports:
+      - "${LOGIN_PORT}:3000"
+    env_file:
+      - ../../services/login/.env 
+    volumes:
+      - ../../services/login:/app
+      - ../../services/database:/app/database
+      - ../../services/login/.env:/app/.env  # Montaje del archivo .env
+    restart: unless-stopped
+    depends_on:
+      - emqx
+      - rabbit_amqp
+      - db_mishistema
+      - apigateway
+    networks:
+      - mishistema
+
+  # Servicio Devices
+  devices:
+    build: ../../services/devices
+    container_name: DEVICES_SERVICE
+    ports:
+      - "${DEVICES_PORT}:3001"
+    env_file:
+      - ../../services/devices/.env 
+    volumes:
+      - ../../services/devices:/app
+      - ../../services/database:/app/database  # Monta la carpeta local 'database' a '/app/database'
+      - ../../services/devices/.env:/app/.env  # Montaje del archivo .env
+    restart: unless-stopped
+    depends_on:
+      - emqx
+      - rabbit_amqp
+      - db_mishistema
+      - apigateway
+    networks:
+      - mishistema
+
+  # Servicio Places
+  places:
+    build: ../../services/places
+    container_name: PLACES_SERVICE
+    ports:
+      - "${PLACES_PORT}:3002"
+    env_file:
+      - ../../services/devices/.env 
+    volumes:
+      - ../../services/places:/app
+      - ../../services/database:/app/database
+      - ../../services/places/.env:/app/.env  # Montaje del archivo .env
+    restart: unless-stopped
+    depends_on:
+      - emqx
+      - rabbit_amqp
+      - db_mishistema
+      - apigateway
+    networks:
+      - mishistema
 
 networks:
-  infraestructure:
+  mishistema:
     driver: bridge
 
 volumes:
-  # mosquitto_data:
-  # mosquitto_config:
-  emqx_log:
-    name: emqx_log
   emqx_data:
     name: emqx_data
+  emqx_etc:
+    name: emqx_etc
   rabbit_amqp_data:
     name: rabbit_amqp_data
-  rabbit_mqtt_data:
-    name: rabbit_mqtt_data
   db_mishistema:
     name: db_mishistema
-  emqx_etc:

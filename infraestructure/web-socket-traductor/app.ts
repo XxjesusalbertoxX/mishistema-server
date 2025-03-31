@@ -1,16 +1,20 @@
 import * as mqtt from 'mqtt';
 import * as WebSocket from 'ws';
+import dotenv from 'dotenv';
 
-const MQTT_BROKER = 'mqtt://3.139.69.116:1883'; // Broker MQTT
-const WS_PORT = 8888; // Puerto para WebSocket
+dotenv.config();
+
+const MQTT_BROKER = process.env.MQTT_BROKER; // Broker MQTT
+const WS_PORT = process.env.WS_PORT; // Puerto para WebSocket
 
 // Opciones de conexión MQTT con credenciales
 const mqttOptions = {
-    username: 'sebas',
-    password: 'sebas12345',
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
     connectTimeout: 5000,
-    reconnectPeriod: 5000
+    reconnectPeriod: 5000,
 };
+
 
 const mqttClient = mqtt.connect(MQTT_BROKER, mqttOptions); // Conectar a MQTT con autenticación
 const wss = new WebSocket.Server({ port: WS_PORT }); // Crear servidor WebSocket
