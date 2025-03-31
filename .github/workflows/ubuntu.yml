@@ -26,7 +26,7 @@ jobs:
 
             echo "📦 Clonando el repositorio mishistema-server..."
             sudo git clone https://github.com/XxjesusalbertoxX/mishistema-server.git
-            
+            sudo chown -R $USER:$USER $HOME/mishistema-server
             # API Gateway
             if [ -d "$HOME/mishistema-server/infraestructure/api-gateway/" ]; then
               cd $HOME/mishistema-server/infraestructure/api-gateway/
