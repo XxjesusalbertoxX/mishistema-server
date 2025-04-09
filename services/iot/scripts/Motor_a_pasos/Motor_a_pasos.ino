@@ -1,115 +1,159 @@
-#include <WiFiNINA.h>  // Para el MKR WiFi 1010
-#include <PubSubClient.h>  // Librería para MQTT
-#include <Stepper.h>
+#include <WiFiNINA.h>
+#include <PubSubClient.h>
+#include <AccelStepper.h>
 
-// Configuraciones WiFi
-const char *ssid = "TuRedWiFi";
-const char *password = "TuContraseñaWiFi";
+// --- Configuración WiFi ---
+const char *ssid = "arduino";
+const char *password = "00000000";
 
-// Configuración MQTT
-const char *mqttServer = "192.168.1.70"; // IP de tu servidor MQTT (RabbitMQ)
-const int mqttPort = 1883;  // Puerto MQTT
-const char *mqttUser = "admin";  // Usuario RabbitMQ
-const char *mqttPassword = "admin123";  // Contraseña RabbitMQ
-const char *mqttTopic = "motor/configure";  // El tópico al que se suscribe Arduino
+// --- Configuración MQTT ---
+const char *mqttServer = "189.244.34.160"; // IP de tu servidor MQTT
+const int mqttPort = 1883;
+const char *mqttUser = "sebas";
+const char *mqttPassword = "sebas123";
+const char *mqttTopic = "motor-limpieza";  // Tópico donde se recibirán los comandos de limpieza
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// Configurar el motor paso a paso
-#define STEPS_PER_REV 2048  // 512 pasos = 360° para el 28BYJ-48
-Stepper stepper(STEPS_PER_REV, 4, 6, 5, 7);
+// --- Pines del TB6600 ---
+#define PUL 8    // Paso
+#define DIR 7    // Dirección
+#define ENA 6  // Pin para habilitar (Enable)
 
-// Variables para velocidad y pasos
-int motorSpeed = 10;  // Velocidad inicial en RPM
-int motorSteps = 512;  // Pasos iniciales (medio giro)
+// --- Configuración del motor con AccelStepper ---
+// Se usa el modo DRIVER (1 pulso y 1 dirección)
+AccelStepper stepper(AccelStepper::DRIVER, PUL, DIR);
+
+// Bandera para indicar que se está ejecutando una acción de limpieza
+bool cleaningInProgress = false;
+
+void initialPosition(){
+  stepper.moveTo(-50);
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+  }
+  
+  // Activar el driver para retener la posición
+  digitalWrite(ENA, LOW); // LOW activa el driver (torque activo)
+  
+  // Establecer la posición actual como referencia (0)
+  stepper.setCurrentPosition(0);
+  Serial.println("Motor listo en posición inicial (45° a la izquierda)");
+}
 
 void setup() {
-    Serial.begin(115200);  // Inicia la comunicación serie
-    WiFi.begin(ssid, password);
+  Serial.begin(115200);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        Serial.println("Conectando a WiFi...");
-    }
-    Serial.println("Conectado a WiFi");
+  // Configurar el pin ENA y desactivar el torque al inicio
+  pinMode(ENA, OUTPUT);
+  digitalWrite(ENA, HIGH); // HIGH desactiva el driver en el TB6600
+  
+  delay(5000); // Esperar 5 segundos antes de moverse
 
-    // Configura el cliente MQTT
-    client.setServer(mqttServer, mqttPort);
-    client.setCallback(mqttCallback);
+  // Configurar parámetros del motor
+  stepper.setMaxSpeed(50);
+  stepper.setAcceleration(15);
 
-    stepper.setSpeed(motorSpeed);  // Configura la velocidad inicial del motor
+  Serial.println("rellena el arenero");
+
+  // Conexión a WiFi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Conectando a WiFi...");
+  }
+  Serial.println("Conectado a WiFi");
+
+  // Configurar MQTT
+  client.setServer(mqttServer, mqttPort);
+  client.setCallback(mqttCallback);
+  reconnectMQTT();
 }
 
 void loop() {
-    //if (!client.connected()) {
-    //    reconnectMQTT();
-    //}
-    //client.loop();
-    moveMotor();  // Mueve el motor según la configuración actual
+  if (!client.connected()) {
+    reconnectMQTT();
+  }
+  client.loop();
+
+  if (cleaningInProgress) {
+    stepper.run();
+  }
 }
 
-// Reconectar al servidor MQTT si la conexión se pierde
 void reconnectMQTT() {
-    while (!client.connected()) {
-        Serial.println("Conectando a MQTT...");
-        if (client.connect("ArduinoClient", mqttUser, mqttPassword)) {
-            Serial.println("Conectado a MQTT");
-            client.subscribe(mqttTopic);  // Se suscribe al tópico
-        } else {
-            Serial.print("Error de conexión. Intentando nuevamente en 5 segundos...");
-            delay(5000);
-        }
+  while (!client.connected()) {
+    Serial.println("Conectando a MQTT...");
+    if (client.connect("ArduinoClient", mqttUser, mqttPassword)) {
+      Serial.println("Conectado a MQTT");
+      client.subscribe(mqttTopic);
+    } else {
+      Serial.println("Fallo la conexión, reintentando en 5 segundos...");
+      delay(5000);
     }
+  }
 }
 
-// Función de callback para manejar mensajes MQTT
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-    String message = "";
-    for (int i = 0; i < length; i++) {
-        message += (char)payload[i];
+  String message = "";
+  for (unsigned int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  
+  // Si el mensaje está vacío, se ignora
+  if (message.length() == 0) return;
+  
+  Serial.print("Mensaje recibido: ");
+  Serial.println(message);
+
+  if (String(topic) == mqttTopic) {
+    if (message.indexOf("completa") >= 0) {
+      publishStatus("Limpiando: limpieza completa");
+      limpiarCompleta();
+    } 
+    if (message.indexOf("normal") >= 0) {
+      publishStatus("Limpiando: limpieza normal");
+      limpiarNormal();
     }
-
-    Serial.print("Mensaje recibido: ");
-    Serial.println(message);
-
-    // Procesar el mensaje JSON
-    if (topic == String(mqttTopic)) {
-        // Aquí puedes hacer un parse del JSON si recibes algo como:
-        // {"speed": 15, "steps": 1024}
-        
-        // Simplemente extraemos los valores que llegaron
-        int newSpeed = extractValue(message, "speed");
-        int newSteps = extractValue(message, "steps");
-
-        // Actualizamos la configuración del motor si son válidos
-        if (newSpeed != -1) motorSpeed = newSpeed;
-        if (newSteps != -1) motorSteps = newSteps;
-
-        stepper.setSpeed(motorSpeed);  // Establecer la nueva velocidad
-        Serial.print("Nueva configuración - Velocidad: ");
-        Serial.print(motorSpeed);
-        Serial.print(" RPM, Pasos: ");
-        Serial.println(motorSteps);
-        
-        // Enviar mensaje de confirmación a RabbitMQ
-        client.publish("motor/status", "Listo");
+    if (message.indexOf("relleno") >= 0) {
+      initialPosition();
     }
+  }
 }
 
-// Función para extraer valores de un JSON (simulada para simplificación)
-int extractValue(String message, String key) {
-    int startIndex = message.indexOf(key + "\":");
-    if (startIndex == -1) return -1;
-    startIndex += key.length() + 3;  // Para saltar la clave y el ":"
-    int endIndex = message.indexOf(",", startIndex);
-    if (endIndex == -1) endIndex = message.indexOf("}", startIndex);
-    return message.substring(startIndex, endIndex).toInt();
+void publishStatus(String status) {
+  client.publish("motor/status", status.c_str());
 }
 
-// Función para mover el motor
-void moveMotor() {
-    // Mueve el motor de acuerdo a los pasos configurados
-    stepper.step(motorSteps);  // Puede ser positivo o negativo para girar en ambos sentidos
-    delay(500);  // Pausa entre movimientos
+void limpiarCompleta() {
+  cleaningInProgress = true;
+  long posInicial = stepper.currentPosition();
+  stepper.moveTo(posInicial - 100);
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+  }
+  stepper.moveTo(posInicial);
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+  }
+  digitalWrite(ENA, HIGH); // HIGH desactiva el driver en el TB6600
+  Serial.println("listo para rellenar");
+  cleaningInProgress = false;
+  publishStatus("Limpieza completa finalizada");
+}
+
+void limpiarNormal() {
+  cleaningInProgress = true;
+  long posInicial = stepper.currentPosition();
+  stepper.moveTo(posInicial + 150);
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+  }
+  stepper.moveTo(posInicial);
+  while (stepper.distanceToGo() != 0) {
+    stepper.run();
+  }
+  cleaningInProgress = false;
+  publishStatus("Limpieza normal finalizada");
 }

@@ -1,33 +1,33 @@
-#include <DHT.h>
+#define trigPin 9        
+#define echoPin 10       
 
-// Definir el pin donde está conectado el sensor
-#define DHTPIN 2       // Cambia al pin donde conectaste el sensor
-#define DHTTYPE DHT11  // Especificamos que usamos un DHT11
-
-DHT dht(DHTPIN, DHTTYPE);
+long duration;
+int distance;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Iniciando el sensor RQ-S003 (DHT11)");
-  dht.begin();
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
 }
 
 void loop() {
-  delay(2000);  // Espera 2 segundos entre lecturas
+  // Enviar un pulso corto al trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
 
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
+  // Medir el tiempo que tarda en regresar el eco
+  duration = pulseIn(echoPin, HIGH);
 
-  if (isnan(h) || isnan(t)) {
-    Serial.println("Error al leer el sensor");
-    return;
-  }
+  // Calcular la distancia en centímetros
+  distance = duration * 0.034 / 2;
 
-  Serial.print("Humedad: ");
-  Serial.print(h);
-  Serial.print(" %\t");
-  Serial.print("Temperatura: ");
-  Serial.print(t);
-  Serial.println(" °C");
+  // Mostrar la distancia en el monitor serial
+  Serial.print("Distancia: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  delay(500); // Esperar medio segundo antes de la siguiente medición
 }
-

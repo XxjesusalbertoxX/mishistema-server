@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+services/examenxd/examen-6d420-firebase-adminsdk-fbsvc-13aa8488ef.json
+services/examenxd/credenciales.json
